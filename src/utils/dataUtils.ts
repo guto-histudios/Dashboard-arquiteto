@@ -26,8 +26,13 @@ export function formatarData(data: string, formato: string = 'dd/MM/yyyy'): stri
 }
 
 export function deveMostrarTask(task: any, dataAtualStr: string): boolean {
+  if (task.dataInicio && dataAtualStr < task.dataInicio) return false;
+  if (task.dataFim && dataAtualStr > task.dataFim) return false;
+
   if (task.tipoRepeticao === 'diasSemana' && task.diasSemana && task.diasSemana.length > 0) {
     const diaSemana = parseISO(dataAtualStr).getDay();
+    // In JS getDay() returns 0 for Sunday, 1 for Monday, etc.
+    // Ensure the array matches this logic.
     return task.diasSemana.includes(diaSemana);
   }
   return true;

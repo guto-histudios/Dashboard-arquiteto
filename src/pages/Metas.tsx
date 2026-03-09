@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { MetaCard } from '../components/metas/MetaCard';
 import { MetaForm } from '../components/metas/MetaForm';
-import { Plus, Target, Sparkles, Archive, History } from 'lucide-react';
+import { Plus, Target, Sparkles, Archive, History, AlertTriangle } from 'lucide-react';
 import { generateMetas, generateHarderMeta } from '../services/geminiService';
-import { Meta } from '../types';
+import { Meta, Task, KPI } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+import { getDataStringBrasil } from '../utils/dataUtils';
+import { useNavigate } from 'react-router-dom';
 
 export function Metas() {
-  const { metas, adicionarMeta, atualizarMeta, removerMeta, userProfile } = useApp();
+  const { metas, adicionarMeta, atualizarMeta, removerMeta, userProfile, tasks, kpis, adicionarTask, adicionarKPI } = useApp();
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [metaToEdit, setMetaToEdit] = useState<Meta | null>(null);
@@ -26,11 +30,53 @@ export function Metas() {
   // Auto-generate if empty
   useEffect(() => {
     const autoGenerate = async () => {
-      if (metas.length === 0 && !isGenerating) {
+      if (metas.length === 0 && !isGenerating && (tasks.length > 0 || kpis.length > 0)) {
         setIsGenerating(true);
         try {
           const novasMetas = await generateMetas(userProfile);
-          novasMetas.forEach(m => adicionarMeta(m));
+          
+          novasMetas.forEach((m: any) => {
+            let metaToSave = { ...m };
+            
+            // Auto-create linked Task or KPI if suggested
+            if (m.sugestaoVinculo) {
+              if (m.sugestaoVinculo.tipo === 'task') {
+                const newTask: Task = {
+                  id: uuidv4(),
+                  titulo: m.sugestaoVinculo.titulo,
+                  descricao: m.sugestaoVinculo.descricao,
+                  duracao: 30,
+                  categoria: 'pessoal',
+                  prioridade: 'media',
+                  status: 'nao_iniciada',
+                  data: getDataStringBrasil(),
+                  tipoRepeticao: m.periodo === 'semanal' ? 'diaria' : 'semanal',
+                  vezAtual: 1,
+                  xpGanho: false,
+                  pomodorosFeitos: 0,
+                };
+                adicionarTask(newTask);
+                metaToSave.tasksVinculadas = [newTask.id];
+              } else if (m.sugestaoVinculo.tipo === 'kpi') {
+                const newKpi: KPI = {
+                  id: uuidv4(),
+                  titulo: m.sugestaoVinculo.titulo,
+                  valorAtual: 0,
+                  valorMeta: m.metaProgresso,
+                  unidade: m.sugestaoVinculo.descricao || 'un',
+                  tipoCalculo: 'manual',
+                  frequencia: m.periodo,
+                  dataInicio: getDataStringBrasil(),
+                  historico: []
+                };
+                adicionarKPI(newKpi);
+                metaToSave.kpiVinculado = newKpi.id;
+              }
+              delete metaToSave.sugestaoVinculo;
+            }
+
+            adicionarMeta(metaToSave);
+          });
         } catch (error) {
           console.error("Failed to auto-generate metas", error);
         } finally {
@@ -41,11 +87,11 @@ export function Metas() {
     
     // Only auto-generate once when the component mounts and metas is empty
     const timer = setTimeout(() => {
-      if (metas.length === 0) autoGenerate();
+      if (metas.length === 0 && (tasks.length > 0 || kpis.length > 0)) autoGenerate();
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [metas.length, userProfile]);
+  }, [metas.length, userProfile, tasks.length, kpis.length]);
 
   const handleUpdateMeta = async (id: string, updates: Partial<Meta>) => {
     atualizarMeta(id, updates);
@@ -94,10 +140,57 @@ export function Metas() {
   };
 
   const handleGenerateAI = async () => {
+    if (tasks.length === 0 && kpis.length === 0) {
+      alert("Para gerar metas, você precisa ter pelo menos 1 KPI ou 1 Task cadastrada.");
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const novasMetas = await generateMetas(userProfile);
-      novasMetas.forEach(m => adicionarMeta(m));
+      
+      novasMetas.forEach((m: any) => {
+        let metaToSave = { ...m };
+        
+        // Auto-create linked Task or KPI if suggested
+        if (m.sugestaoVinculo) {
+          if (m.sugestaoVinculo.tipo === 'task') {
+            const newTask: Task = {
+              id: uuidv4(),
+              titulo: m.sugestaoVinculo.titulo,
+              descricao: m.sugestaoVinculo.descricao,
+              duracao: 30,
+              categoria: 'pessoal',
+              prioridade: 'media',
+              status: 'nao_iniciada',
+              data: getDataStringBrasil(),
+              tipoRepeticao: m.periodo === 'semanal' ? 'diaria' : 'semanal',
+              vezAtual: 1,
+              xpGanho: false,
+              pomodorosFeitos: 0,
+            };
+            adicionarTask(newTask);
+            metaToSave.tasksVinculadas = [newTask.id];
+          } else if (m.sugestaoVinculo.tipo === 'kpi') {
+            const newKpi: KPI = {
+              id: uuidv4(),
+              titulo: m.sugestaoVinculo.titulo,
+              valorAtual: 0,
+              valorMeta: m.metaProgresso,
+              unidade: m.sugestaoVinculo.descricao || 'un',
+              tipoCalculo: 'manual',
+              frequencia: m.periodo,
+              dataInicio: getDataStringBrasil(),
+              historico: []
+            };
+            adicionarKPI(newKpi);
+            metaToSave.kpiVinculado = newKpi.id;
+          }
+          delete metaToSave.sugestaoVinculo;
+        }
+
+        adicionarMeta(metaToSave);
+      });
     } catch (error) {
       console.error("Failed to generate metas", error);
     } finally {
@@ -142,8 +235,9 @@ export function Metas() {
             <>
               <button 
                 onClick={handleGenerateAI}
-                disabled={isGenerating}
-                className="btn-secondary flex items-center gap-2"
+                disabled={isGenerating || (tasks.length === 0 && kpis.length === 0)}
+                className={`btn-secondary flex items-center gap-2 ${tasks.length === 0 && kpis.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={tasks.length === 0 && kpis.length === 0 ? "Crie pelo menos 1 Task ou KPI primeiro" : ""}
               >
                 {isGenerating ? (
                   <div className="w-5 h-5 border-2 border-text-sec border-t-transparent rounded-full animate-spin"></div>
@@ -234,6 +328,33 @@ export function Metas() {
         </div>
       ) : (
         <>
+          {tasks.length === 0 && kpis.length === 0 && !isGenerating && metas.length === 0 && (
+            <div className="glass-card flex flex-col items-center justify-center py-16 text-center border-accent-blue/30">
+              <div className="w-20 h-20 bg-accent-blue/10 rounded-full flex items-center justify-center mb-6 border border-accent-blue/30">
+                <AlertTriangle size={40} className="text-accent-blue" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">Para gerar metas, você precisa ter:</h3>
+              <div className="flex flex-col items-start gap-2 mb-8 text-text-sec">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full border border-border-subtle flex items-center justify-center bg-bg-sec"></div>
+                  <span>Pelo menos 1 KPI criada</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full border border-border-subtle flex items-center justify-center bg-bg-sec"></div>
+                  <span>Pelo menos 1 Task criada</span>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button onClick={() => navigate('/kpis')} className="btn-secondary flex items-center gap-2">
+                  <Plus size={18} /> Criar KPI
+                </button>
+                <button onClick={() => navigate('/tasks')} className="btn-secondary flex items-center gap-2">
+                  <Plus size={18} /> Criar Task
+                </button>
+              </div>
+            </div>
+          )}
+
           {isGenerating && metas.length === 0 && (
             <div className="glass-card flex flex-col items-center justify-center py-16 text-center">
               <div className="w-12 h-12 border-4 border-accent-blue/30 border-t-accent-blue rounded-full animate-spin mb-4"></div>

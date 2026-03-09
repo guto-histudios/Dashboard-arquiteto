@@ -49,11 +49,48 @@ export async function generateRoutineSuggestion(userProfile: any, answers: any) 
     Rotina Atual: ${userProfile.rotina}
     Hábitos Atuais: ${userProfile.habitosAtuais}
     Horários Disponíveis: ${userProfile.horariosDisponiveis}
-    Filosofia (Hara Hachi Bu): ${userProfile.haraHachiBu}
+    Hora que Acorda: ${userProfile.horaAcordar || '07:00'}
+    Hora que Dorme: ${userProfile.horaDormir || '23:00'}
     Filosofia (Shokunin): ${userProfile.shokunin}
     Respostas Extras: ${answers.join(" | ")}
 
     Gere uma lista de tarefas (tasks) e uma lista de hábitos (habitos) que ajudarão esse usuário a alcançar seus objetivos.
+    IMPORTANTE: NÃO inclua tarefas relacionadas a alimentação, refeições (café da manhã, almoço, jantar, lanches). Isso será tratado em um módulo separado.
+    
+    REGRAS DE HORÁRIOS:
+    1. Você SÓ PODE agendar tarefas e hábitos entre a "Hora que Acorda" (${userProfile.horaAcordar || '07:00'}) e a "Hora que Dorme" (${userProfile.horaDormir || '23:00'}).
+    2. Não crie tarefas de madrugada se o usuário estiver dormindo.
+    3. Considere tempo de deslocamento e pausas naturais.
+    4. Reserve pelo menos 1 hora livre no meio do dia para o almoço (mesmo sem criar a tarefa de almoço).
+    
+    REGRAS DE FREQUÊNCIA PARA TAREFAS:
+    1. TAREFAS DIÁRIAS (tipoRepeticao: "diaria"):
+       - Apenas hábitos (meditar, exercitar, ler)
+       - Tasks muito curtas (< 30 min)
+       - Tasks de manutenção diária (ex: "Responder comentários")
+       - NUNCA coloque tarefas pesadas ou cansativas aqui (ex: "Editar vídeos", "Trabalhar 10 horas").
+    2. TAREFAS SEMANAIS (tipoRepeticao: "semanal" ou "diasSemana" com 1-3 dias):
+       - Trabalhos criativos pesados (ex: "Editar vídeo longo")
+       - Tarefas que exigem muita energia
+       - Exemplo: "Gravar vídeo" (2x por semana), "Postar nas redes" (3x por semana).
+    3. TAREFAS QUINZENAIS (tipoRepeticao: "quinzenal"):
+       - Projetos grandes e complexos
+       - Revisões profundas
+       - Limpeza/organização geral
+    4. TAREFAS MENSAIS (tipoRepeticao: "mensal"):
+       - Planejamento do mês
+       - Análise de resultados
+       - Tarefas de baixa prioridade
+
+    Para cada task gerada, você DEVE incluir uma "justificativaFrequencia" explicando brevemente por que escolheu essa frequência baseada nas regras acima.
+
+    Se o usuário mencionar eventos que acontecem em dias específicos num período (ex: "Faculdade de 09/03 a 11/07, toda Quinta 08:50 - 11:35"), você DEVE gerar uma task com:
+    - tipoRepeticao: "diasSemana"
+    - diasSemana: array com os dias (0=Dom, 1=Seg, ..., 6=Sáb)
+    - dataInicio: data de início no formato YYYY-MM-DD
+    - dataFim: data de fim no formato YYYY-MM-DD
+    - horario: horário de início (HH:mm)
+    - duracao: duração em minutos
     
     Retorne APENAS um objeto JSON com a seguinte estrutura:
     {
@@ -62,9 +99,14 @@ export async function generateRoutineSuggestion(userProfile: any, answers: any) 
           "titulo": "string",
           "descricao": "string",
           "duracao": number (em minutos),
+          "horario": "HH:mm" (opcional),
           "categoria": "trabalho" | "pessoal" | "saude" | "estudos",
           "prioridade": "alta" | "media" | "baixa",
-          "tipoRepeticao": "nenhuma" | "diaria" | "diasSemana" | "semanal" | "mensal"
+          "tipoRepeticao": "nenhuma" | "diaria" | "diasSemana" | "semanal" | "quinzenal" | "mensal",
+          "justificativaFrequencia": "string (explicando a escolha da frequência)",
+          "diasSemana": [0, 1, 2, 3, 4, 5, 6] (opcional, apenas se tipoRepeticao for diasSemana),
+          "dataInicio": "YYYY-MM-DD" (opcional, início do período),
+          "dataFim": "YYYY-MM-DD" (opcional, fim do período)
         }
       ],
       "habitos": [
@@ -283,6 +325,9 @@ export async function generateMetas(userProfile: any): Promise<Meta[]> {
     - 3 metas MENSAIS (médio prazo, requerem consistência)
     - 3 metas TRIMESTRAIS (longo prazo, grandes marcos)
 
+    IMPORTANTE: Toda meta DEVE estar vinculada a uma Task ou a um KPI.
+    Se não houver uma Task ou KPI existente que faça sentido, você DEVE sugerir a criação de um novo.
+    
     Retorne APENAS um objeto JSON com a seguinte estrutura:
     {
       "metas": [
@@ -290,7 +335,12 @@ export async function generateMetas(userProfile: any): Promise<Meta[]> {
           "titulo": "string",
           "descricao": "string",
           "periodo": "semanal" | "mensal" | "trimestral",
-          "metaProgresso": number (valor alvo, ex: 100 para 100%, 10 para 10 livros, etc)
+          "metaProgresso": number (valor alvo, ex: 100 para 100%, 10 para 10 livros, etc),
+          "sugestaoVinculo": {
+            "tipo": "task" | "kpi",
+            "titulo": "string (título da nova task ou kpi a ser criado)",
+            "descricao": "string (descrição ou unidade do kpi)"
+          }
         }
       ]
     }
@@ -327,7 +377,8 @@ export async function generateMetas(userProfile: any): Promise<Meta[]> {
         tasksVinculadas: [],
         ehIkigai: false,
         ehShokunin: false,
-      } as Meta;
+        sugestaoVinculo: m.sugestaoVinculo
+      } as Meta & { sugestaoVinculo?: any };
     });
   } catch (error) {
     console.error("Erro ao gerar metas:", error);

@@ -1,7 +1,7 @@
 export type TaskStatus = 'nao_iniciada' | 'em_andamento' | 'concluida' | 'cancelada' | 'nao_feita' | 'adiada' | 'atrasada';
 export type TaskCategoria = 'trabalho' | 'pessoal' | 'saude' | 'estudos';
 export type TaskPrioridade = 'alta' | 'media' | 'baixa';
-export type TipoRepeticao = 'nenhuma' | 'diaria' | 'diasSemana' | 'semanal' | 'mensal';
+export type TipoRepeticao = 'nenhuma' | 'diaria' | 'diasSemana' | 'semanal' | 'quinzenal' | 'mensal';
 
 export interface Task {
   id: string;
@@ -12,8 +12,11 @@ export interface Task {
   prioridade: TaskPrioridade;
   status: TaskStatus;
   data: string; // YYYY-MM-DD
+  dataInicio?: string; // YYYY-MM-DD (Start of recurrence period)
+  dataFim?: string; // YYYY-MM-DD (End of recurrence period)
   prazo?: string; // YYYY-MM-DD
   tipoRepeticao: TipoRepeticao;
+  justificativaFrequencia?: string;
   dataLimite?: string; // YYYY-MM-DD
   horario?: string; // HH:mm
   diasSemana?: number[]; // [0,1,2,3,4,5,6]
@@ -129,6 +132,8 @@ export interface UserProfile {
   rotina: string;
   habitosAtuais: string;
   horariosDisponiveis: string;
+  horaAcordar?: string;
+  horaDormir?: string;
   haraHachiBu: string;
   shokunin: string;
 }

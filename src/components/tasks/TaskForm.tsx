@@ -13,7 +13,7 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps) {
-  const { horariosFixos, kpis, metas, adicionarHorarioFixo } = useApp();
+  const { horariosFixos, kpis, metas, adicionarHorarioFixo, tasks } = useApp();
   const [titulo, setTitulo] = useState(initialTask?.titulo || '');
   const [descricao, setDescricao] = useState(initialTask?.descricao || '');
   const [duracao, setDuracao] = useState(initialTask?.duracao || 30);
@@ -21,7 +21,10 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
   const [categoria, setCategoria] = useState<TaskCategoria>(initialTask?.categoria || 'trabalho');
   const [prioridade, setPrioridade] = useState<TaskPrioridade>(initialTask?.prioridade || 'media');
   const [data, setData] = useState(initialTask?.data || getDataStringBrasil());
+  const [dataInicio, setDataInicio] = useState(initialTask?.dataInicio || '');
+  const [dataFim, setDataFim] = useState(initialTask?.dataFim || '');
   const [tipoRepeticao, setTipoRepeticao] = useState<TipoRepeticao>(initialTask?.tipoRepeticao || 'nenhuma');
+  const [justificativaFrequencia, setJustificativaFrequencia] = useState(initialTask?.justificativaFrequencia || '');
   const [diasSemana, setDiasSemana] = useState<number[]>(initialTask?.diasSemana || []);
   const [horarioFixo, setHorarioFixo] = useState(initialTask?.horarioFixo || false);
   const [horarioFixoId, setHorarioFixoId] = useState(initialTask?.horarioFixoId || '');
@@ -39,7 +42,10 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       setCategoria(initialTask?.categoria || 'trabalho');
       setPrioridade(initialTask?.prioridade || 'media');
       setData(initialTask?.data || getDataStringBrasil());
+      setDataInicio(initialTask?.dataInicio || '');
+      setDataFim(initialTask?.dataFim || '');
       setTipoRepeticao(initialTask?.tipoRepeticao || 'nenhuma');
+      setJustificativaFrequencia(initialTask?.justificativaFrequencia || '');
       setDiasSemana(initialTask?.diasSemana || []);
       setHorarioFixo(initialTask?.horarioFixo || false);
       setHorarioFixoId(initialTask?.horarioFixoId || '');
@@ -92,11 +98,51 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
 
       // Check overlap
       if (taskStart < fixoEnd && taskEnd > fixoStart) {
+        if (horarioFixo && horarioFixoId === fixo.id) continue;
         return `Atenção: Este horário sobrepõe com seu horário fixo: ${fixo.descricao} (${fixo.horaInicio}${fixo.horaFim ? ` - ${fixo.horaFim}` : ''})`;
       }
     }
+
+    // Check overlap with other tasks on the same date
+    const sameDateTasks = tasks.filter(t => t.data === data && t.id !== initialTask?.id && t.status !== 'cancelada' && t.status !== 'concluida');
+    for (const t of sameDateTasks) {
+      if (!t.horario) continue;
+      const tStart = parseInt(t.horario.replace(':', ''));
+      const [th, tm] = t.horario.split(':').map(Number);
+      const tEndDate = new Date();
+      tEndDate.setHours(th, tm + t.duracao, 0, 0);
+      const tEndStr = `${String(tEndDate.getHours()).padStart(2, '0')}${String(tEndDate.getMinutes()).padStart(2, '0')}`;
+      const tEnd = parseInt(tEndStr);
+
+      if (taskStart < tEnd && taskEnd > tStart) {
+        return `Atenção: Este horário sobrepõe com a tarefa: ${t.titulo} (${t.horario} - ${tEndStr.slice(0,2)}:${tEndStr.slice(2)})`;
+      }
+    }
+
     return null;
-  }, [horario, horarioFim, horariosFixos]);
+  }, [horario, horarioFim, horariosFixos, tasks, data, initialTask, horarioFixo, horarioFixoId]);
+
+  const bedtimeError = useMemo(() => {
+    if (!horarioFim) return null;
+    const sonoInicio = horariosFixos.find(h => h.tipo === 'sono_inicio');
+    if (!sonoInicio || !sonoInicio.horaInicio) return null;
+
+    const [hEnd, mEnd] = horarioFim.split(':').map(Number);
+    const [hSleep, mSleep] = sonoInicio.horaInicio.split(':').map(Number);
+    
+    const endMins = hEnd * 60 + mEnd;
+    let sleepMins = hSleep * 60 + mSleep;
+    
+    if (sleepMins < 12 * 60) sleepMins += 24 * 60;
+    
+    let compareEndMins = endMins;
+    if (compareEndMins < 12 * 60) compareEndMins += 24 * 60;
+
+    if (compareEndMins > sleepMins) {
+      return `Erro: O horário de fim (${horarioFim}) ultrapassa sua hora de dormir (${sonoInicio.horaInicio}).`;
+    }
+    return null;
+  }, [horarioFim, horariosFixos]);
 
   if (!isOpen) return null;
 
@@ -123,7 +169,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       titulo,
       descricao,
       duracao,
-      horario: horarioFixo && horario ? horario : undefined,
+      horario: horario ? horario : undefined,
       horarioFixo,
       horarioFixoId: horarioFixo && finalHorarioFixoId ? finalHorarioFixoId : undefined,
       deadline: temDeadline && deadline ? deadline : undefined,
@@ -131,7 +177,10 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       prioridade,
       status: initialTask?.status || 'nao_iniciada',
       data,
+      dataInicio: dataInicio || undefined,
+      dataFim: dataFim || undefined,
       tipoRepeticao,
+      justificativaFrequencia: justificativaFrequencia || undefined,
       diasSemana: tipoRepeticao === 'diasSemana' ? diasSemana : undefined,
       vezAtual: initialTask?.vezAtual || 1,
       vezesConcluida: initialTask?.vezesConcluida || 0,
@@ -152,6 +201,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
     setTemDeadline(false);
     setDeadline('');
     setDiasSemana([]);
+    setJustificativaFrequencia('');
     setKpiVinculado('');
     setMetaVinculada('');
   };
@@ -212,10 +262,32 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-text-sec">Horário de Início (Opcional)</label>
+              <input 
+                type="time"
+                value={horario} 
+                onChange={(e) => {
+                  setHorario(e.target.value);
+                  setHorarioFixoId(''); // Desvincular se mudar manualmente
+                }} 
+                className="input-modern"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-text-sec">Horário de Fim</label>
+              <div className="input-modern bg-bg-main flex items-center text-text-sec h-[46px]">
+                <Clock size={16} className="mr-2" />
+                {horarioFim || '--:--'}
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-4 bg-bg-sec/30 p-4 rounded-xl border border-border-subtle">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-white flex items-center gap-2">
-                Horário fixo?
+                Vincular a Horário Fixo?
               </label>
               <input 
                 type="checkbox" 
@@ -225,48 +297,20 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
               />
             </div>
 
-            {horarioFixo && (
-              <div className="space-y-4 pt-2">
-                {horariosFixos.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-text-sec">Vincular a Horário Existente</label>
-                    <select
-                      value={horarioFixoId}
-                      onChange={(e) => handleHorarioFixoChange(e.target.value)}
-                      className="input-modern appearance-none"
-                    >
-                      <option value="">-- Criar novo horário personalizado --</option>
-                      {horariosFixos.map(hf => (
-                        <option key={hf.id} value={hf.id}>
-                          {hf.descricao} ({hf.horaInicio}{hf.horaFim ? ` - ${hf.horaFim}` : ''})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-text-sec">Horário de Início</label>
-                    <input 
-                      type="time"
-                      required={horarioFixo}
-                      value={horario} 
-                      onChange={(e) => {
-                        setHorario(e.target.value);
-                        setHorarioFixoId(''); // Desvincular se mudar manualmente
-                      }} 
-                      className="input-modern"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-text-sec">Horário de Fim</label>
-                    <div className="input-modern bg-bg-main flex items-center text-text-sec">
-                      <Clock size={16} className="mr-2" />
-                      {horarioFim || '--:--'}
-                    </div>
-                  </div>
-                </div>
+            {horarioFixo && horariosFixos.length > 0 && (
+              <div className="pt-2">
+                <select
+                  value={horarioFixoId}
+                  onChange={(e) => handleHorarioFixoChange(e.target.value)}
+                  className="input-modern appearance-none"
+                >
+                  <option value="">-- Selecione um horário fixo --</option>
+                  {horariosFixos.map(hf => (
+                    <option key={hf.id} value={hf.id}>
+                      {hf.descricao} ({hf.horaInicio}{hf.horaFim ? ` - ${hf.horaFim}` : ''})
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
           </div>
@@ -298,7 +342,14 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
             )}
           </div>
 
-          {overlapWarning && (
+          {bedtimeError && (
+            <div className="bg-error/10 border border-error/30 text-error p-3 rounded-lg flex items-start gap-2 text-sm">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <p>{bedtimeError}</p>
+            </div>
+          )}
+
+          {overlapWarning && !bedtimeError && (
             <div className="bg-warning/10 border border-warning/30 text-warning p-3 rounded-lg flex items-start gap-2 text-sm">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <p>{overlapWarning}</p>
@@ -344,9 +395,38 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
               <option value="diaria">Diária</option>
               <option value="diasSemana">Dias Específicos</option>
               <option value="semanal">Semanal</option>
+              <option value="quinzenal">Quinzenal</option>
               <option value="mensal">Mensal</option>
             </select>
+            {justificativaFrequencia && (
+              <p className="mt-2 text-xs text-text-sec italic border-l-2 border-accent-blue/30 pl-2">
+                "{justificativaFrequencia}"
+              </p>
+            )}
           </div>
+
+          {tipoRepeticao !== 'nenhuma' && (
+            <div className="grid grid-cols-2 gap-5 bg-bg-sec/30 p-4 rounded-xl border border-border-subtle">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-text-sec">Início do Período (Opcional)</label>
+                <input 
+                  type="date"
+                  value={dataInicio} 
+                  onChange={(e) => setDataInicio(e.target.value)} 
+                  className="input-modern"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-text-sec">Fim do Período (Opcional)</label>
+                <input 
+                  type="date"
+                  value={dataFim} 
+                  onChange={(e) => setDataFim(e.target.value)} 
+                  className="input-modern"
+                />
+              </div>
+            </div>
+          )}
 
           {tipoRepeticao === 'diasSemana' && (
             <div className="bg-bg-sec/30 p-4 rounded-xl border border-border-subtle">
@@ -427,7 +507,8 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
             </button>
             <button 
               type="submit"
-              className="btn-primary"
+              disabled={!!bedtimeError}
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Salvar
             </button>

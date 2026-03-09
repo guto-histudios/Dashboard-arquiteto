@@ -23,6 +23,8 @@ export function Configuracoes() {
     rotina: '',
     habitosAtuais: '',
     horariosDisponiveis: '',
+    horaAcordar: '07:00',
+    horaDormir: '23:00',
     haraHachiBu: '',
     shokunin: '',
   });
@@ -193,6 +195,29 @@ export function Configuracoes() {
                   className="input-modern"
                   min="1"
                   max="120"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-text-sec">Hora que Acorda</label>
+                <input 
+                  type="time"
+                  value={profile.horaAcordar || '07:00'} 
+                  onChange={(e) => setProfile({ ...profile, horaAcordar: e.target.value })} 
+                  className="input-modern"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-text-sec">Hora que Dorme</label>
+                <input 
+                  type="time"
+                  value={profile.horaDormir || '23:00'} 
+                  onChange={(e) => setProfile({ ...profile, horaDormir: e.target.value })} 
+                  className="input-modern"
+                  required
                 />
               </div>
             </div>

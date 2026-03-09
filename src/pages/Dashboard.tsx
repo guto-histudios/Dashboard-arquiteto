@@ -23,15 +23,10 @@ export function Dashboard() {
     .filter(t => !t.deadline || t.deadline >= hoje)
     .filter(t => deveMostrarTask(t, hoje))
     .sort((a, b) => {
-      // Fixed time tasks first
-      if (a.horarioFixo && !b.horarioFixo) return -1;
-      if (!a.horarioFixo && b.horarioFixo) return 1;
-      
-      // Then sort by time
-      if (!a.horario && !b.horario) return 0;
-      if (!a.horario) return 1;
-      if (!b.horario) return -1;
-      return a.horario.localeCompare(b.horario);
+      if (a.horario && b.horario) return a.horario.localeCompare(b.horario);
+      if (a.horario) return -1;
+      if (b.horario) return 1;
+      return a.duracao - b.duracao;
     });
   const habitosDoDia = habitos.filter(h => h.diasSemana.includes(new Date().getDay()));
   

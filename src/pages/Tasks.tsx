@@ -47,14 +47,10 @@ export function Tasks() {
       return dateB.localeCompare(dateA);
     }
     
-    // Fixed time tasks first
-    if (a.horarioFixo && !b.horarioFixo) return -1;
-    if (!a.horarioFixo && b.horarioFixo) return 1;
-    
-    if (!a.horario && !b.horario) return 0;
-    if (!a.horario) return 1;
-    if (!b.horario) return -1;
-    return a.horario.localeCompare(b.horario);
+    if (a.horario && b.horario) return a.horario.localeCompare(b.horario);
+    if (a.horario) return -1;
+    if (b.horario) return 1;
+    return a.duracao - b.duracao;
   });
 
   return (

@@ -4,7 +4,7 @@ import { generateDeepeningQuestions, generateRoutineSuggestion } from '../servic
 import { UserProfile, HorarioFixo, Task, Habito } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { Sparkles, ChevronRight, Loader2 } from 'lucide-react';
+import { Sparkles, ChevronRight, Loader2, AlertTriangle, Clock } from 'lucide-react';
 import { getDataStringBrasil } from '../utils/dataUtils';
 
 export function Onboarding() {
@@ -21,14 +21,36 @@ export function Onboarding() {
     rotina: '',
     habitosAtuais: '',
     horariosDisponiveis: '',
+    horaAcordar: '07:00',
+    horaDormir: '23:00',
     haraHachiBu: '',
     shokunin: '',
   });
   const [questions, setQuestions] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [generatedRoutine, setGeneratedRoutine] = useState<any>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const getHorasDisponiveis = () => {
+    if (!formData.horaAcordar || !formData.horaDormir) return null;
+    
+    const [hA, mA] = formData.horaAcordar.split(':').map(Number);
+    const [hD, mD] = formData.horaDormir.split(':').map(Number);
+    
+    let totalMinutos = (hD * 60 + mD) - (hA * 60 + mA);
+    if (totalMinutos <= 0) {
+      totalMinutos += 24 * 60;
+    }
+    
+    const horas = Math.floor(totalMinutos / 60);
+    const minutos = totalMinutos % 60;
+    const minutosDormindo = (24 * 60) - totalMinutos;
+    const horasDormindo = minutosDormindo / 60;
+    
+    return { horas, minutos, totalMinutos, horasDormindo };
   };
 
   const handleNextStep = async () => {
@@ -58,26 +80,34 @@ export function Onboarding() {
       setLoadingMessage('O Arquiteto está desenhando sua rotina ideal...');
       try {
         const routine = await generateRoutineSuggestion(formData, answers);
-        
+        setGeneratedRoutine(routine);
+        setStep(4);
+      } catch (error) {
+        console.error("Failed to generate routine", error);
+        alert("Ocorreu um erro ao gerar sua rotina. Por favor, tente novamente.");
+      } finally {
+        setLoading(false);
+        setLoadingMessage('');
+      }
+    } else if (step === 4) {
+      setLoading(true);
+      setLoadingMessage('Salvando sua rotina...');
+      try {
         // Save profile
         setUserProfile(formData);
         
         // Add default fixed times
         const defaultFixedTimes: HorarioFixo[] = [
-          { id: uuidv4(), tipo: 'cafe_almoco', horaInicio: '07:00', horaFim: '07:30', descricao: 'Café da Manhã' },
-          { id: uuidv4(), tipo: 'almoco', horaInicio: '12:00', horaFim: '13:00', descricao: 'Almoço' },
-          { id: uuidv4(), tipo: 'lanche_tarde', horaInicio: '16:00', horaFim: '16:15', descricao: 'Lanche da Tarde' },
-          { id: uuidv4(), tipo: 'jantar', horaInicio: '19:00', horaFim: '20:00', descricao: 'Jantar' },
-          { id: uuidv4(), tipo: 'sono_inicio', horaInicio: '23:00', descricao: 'Dormir' },
-          { id: uuidv4(), tipo: 'sono_fim', horaInicio: '06:00', descricao: 'Acordar' },
+          { id: uuidv4(), tipo: 'sono_inicio', horaInicio: formData.horaDormir || '23:00', descricao: 'Dormir' },
+          { id: uuidv4(), tipo: 'sono_fim', horaInicio: formData.horaAcordar || '06:00', descricao: 'Acordar' },
         ];
         
         defaultFixedTimes.forEach(time => adicionarHorarioFixo(time));
 
         const hoje = getDataStringBrasil();
 
-        if (routine && routine.tasks) {
-          routine.tasks.forEach((t: any) => {
+        if (generatedRoutine && generatedRoutine.tasks) {
+          generatedRoutine.tasks.forEach((t: any) => {
             const newTask: Task = {
               id: uuidv4(),
               titulo: t.titulo || 'Nova Tarefa',
@@ -86,8 +116,13 @@ export function Onboarding() {
               categoria: t.categoria || 'pessoal',
               prioridade: t.prioridade || 'media',
               status: 'nao_iniciada',
-              data: hoje,
+              data: t.dataInicio || hoje,
+              dataInicio: t.dataInicio || undefined,
+              dataFim: t.dataFim || undefined,
+              horario: t.horario || undefined,
+              diasSemana: t.diasSemana || undefined,
               tipoRepeticao: t.tipoRepeticao || 'nenhuma',
+              justificativaFrequencia: t.justificativaFrequencia || undefined,
               vezAtual: 1,
               xpGanho: false,
               pomodorosFeitos: 0,
@@ -96,8 +131,8 @@ export function Onboarding() {
           });
         }
 
-        if (routine && routine.habitos) {
-          routine.habitos.forEach((h: any) => {
+        if (generatedRoutine && generatedRoutine.habitos) {
+          generatedRoutine.habitos.forEach((h: any) => {
             const newHabito: Habito = {
               id: uuidv4(),
               nome: h.nome || 'Novo Hábito',
@@ -114,8 +149,8 @@ export function Onboarding() {
         atualizarConfig({ onboardingCompleted: true });
         navigate('/');
       } catch (error) {
-        console.error("Failed to generate routine", error);
-        alert("Ocorreu um erro ao gerar sua rotina. Por favor, tente novamente.");
+        console.error("Failed to save routine", error);
+        alert("Ocorreu um erro ao salvar sua rotina. Por favor, tente novamente.");
       } finally {
         setLoading(false);
         setLoadingMessage('');
@@ -142,7 +177,7 @@ export function Onboarding() {
           </div>
 
           <div className="mb-8 flex gap-2">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3, 4].map(i => (
               <div key={i} className={`h-2 flex-1 rounded-full transition-all duration-500 ${step >= i ? 'bg-gradient-to-r from-accent-blue to-accent-purple' : 'bg-bg-sec border border-border-subtle'}`} />
             ))}
           </div>
@@ -173,6 +208,41 @@ export function Onboarding() {
                         <input type="number" name="expectativaVida" value={formData.expectativaVida} onChange={(e) => setFormData({...formData, expectativaVida: Number(e.target.value)})} className="input-modern" min="1" max="120" />
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-text-sec">Hora que Acorda</label>
+                        <input type="time" name="horaAcordar" value={formData.horaAcordar} onChange={handleChange} className="input-modern" required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-text-sec">Hora que Dorme</label>
+                        <input type="time" name="horaDormir" value={formData.horaDormir} onChange={handleChange} className="input-modern" required />
+                      </div>
+                    </div>
+
+                    {getHorasDisponiveis() && (
+                      <div className="bg-bg-sec/50 border border-border-subtle p-4 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock size={16} className="text-accent-blue" />
+                          <span className="font-medium">
+                            {getHorasDisponiveis()?.horas} horas e {getHorasDisponiveis()?.minutos} minutos disponíveis por dia
+                          </span>
+                        </div>
+                        
+                        {getHorasDisponiveis()!.horasDormindo < 6 && (
+                          <div className="flex items-start gap-2 text-orange-400 text-sm mt-2">
+                            <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                            <p>Você está dormindo apenas {getHorasDisponiveis()?.horasDormindo.toFixed(1)}h. Recomendamos pelo menos 7h de sono para manter a produtividade.</p>
+                          </div>
+                        )}
+                        {getHorasDisponiveis()!.horasDormindo > 10 && (
+                          <div className="flex items-start gap-2 text-accent-purple text-sm mt-2">
+                            <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                            <p>Você está dormindo {getHorasDisponiveis()?.horasDormindo.toFixed(1)}h. Muito tempo de sono pode reduzir seu tempo útil.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm font-medium mb-2 text-text-sec">Objetivos de Produtividade</label>
@@ -216,20 +286,61 @@ export function Onboarding() {
 
                 {step === 3 && (
                   <div className="space-y-5 animate-slide-up">
-                    <h2 className="text-2xl font-bold mb-6">Passo 3: Metodologias Japonesas</h2>
+                    <h2 className="text-2xl font-bold mb-6">Passo 3: Shokunin (Maestria)</h2>
+                    <p className="text-text-sec mb-4">A filosofia Shokunin envolve a dedicação total e a busca constante pela perfeição em sua arte ou profissão.</p>
                     <div>
                       <label className="block text-sm font-medium mb-2 text-text-sec">
-                        Hara Hachi Bu (Alimentação)
-                        <span className="block text-xs text-text-sec/70 mt-1 font-normal">Comer até estar 80% satisfeito. Como é sua alimentação atual?</span>
+                        Em que área você busca maestria e dedicação total?
                       </label>
-                      <textarea name="haraHachiBu" value={formData.haraHachiBu} onChange={handleChange} className="input-modern min-h-[80px] resize-y" />
+                      <textarea name="shokunin" value={formData.shokunin} onChange={handleChange} className="input-modern min-h-[80px] resize-y" placeholder="Ex: Programação, Design, Escrita, Música..." />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-text-sec">
-                        Shokunin (Maestria)
-                        <span className="block text-xs text-text-sec/70 mt-1 font-normal">Em que área você busca maestria e dedicação total?</span>
-                      </label>
-                      <textarea name="shokunin" value={formData.shokunin} onChange={handleChange} className="input-modern min-h-[80px] resize-y" />
+                  </div>
+                )}
+
+                {step === 4 && generatedRoutine && (
+                  <div className="space-y-5 animate-slide-up">
+                    <h2 className="text-2xl font-bold mb-6">Passo 4: Revisão da Rotina</h2>
+                    <p className="text-text-sec mb-4">O Arquiteto gerou as seguintes tarefas. Você pode ajustar a frequência sugerida antes de finalizar.</p>
+                    
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                      {generatedRoutine.tasks.map((task: any, index: number) => (
+                        <div key={index} className="bg-bg-sec border border-border-subtle p-4 rounded-xl">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-bold text-lg">{task.titulo}</h3>
+                            <span className="text-xs font-medium px-2 py-1 bg-bg-main rounded-md border border-border-subtle capitalize">
+                              {task.categoria}
+                            </span>
+                          </div>
+                          {task.descricao && <p className="text-sm text-text-sec mb-3">{task.descricao}</p>}
+                          
+                          <div className="bg-bg-main/50 p-3 rounded-lg border border-border-subtle/50 mb-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="text-sm font-medium">Frequência Sugerida:</label>
+                              <select 
+                                value={task.tipoRepeticao}
+                                onChange={(e) => {
+                                  const newRoutine = { ...generatedRoutine };
+                                  newRoutine.tasks[index].tipoRepeticao = e.target.value;
+                                  setGeneratedRoutine(newRoutine);
+                                }}
+                                className="input-modern py-1 px-2 text-sm w-auto"
+                              >
+                                <option value="nenhuma">Nenhuma</option>
+                                <option value="diaria">Diária</option>
+                                <option value="diasSemana">Dias Específicos</option>
+                                <option value="semanal">Semanal</option>
+                                <option value="quinzenal">Quinzenal</option>
+                                <option value="mensal">Mensal</option>
+                              </select>
+                            </div>
+                            {task.justificativaFrequencia && (
+                              <p className="text-xs text-text-sec italic border-l-2 border-accent-blue/30 pl-2">
+                                "{task.justificativaFrequencia}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -244,8 +355,10 @@ export function Onboarding() {
                 disabled={loading}
                 className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {step === 3 ? (
+                {step === 4 ? (
                   <>Finalizar <Sparkles size={18} /></>
+                ) : step === 3 ? (
+                  <>Gerar Rotina <Sparkles size={18} /></>
                 ) : (
                   <>Próximo <ChevronRight size={18} /></>
                 )}

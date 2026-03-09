@@ -45,6 +45,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
     return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
   }, [task.horario, task.duracao, task.data, task.status]);
 
+  const progressPercentage = useMemo(() => {
+    if (!isCurrentTime || !task.horario) return 0;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const [h, m] = task.horario.split(':').map(Number);
+    const startMinutes = h * 60 + m;
+    const elapsed = currentMinutes - startMinutes;
+    return Math.min(100, Math.max(0, (elapsed / task.duracao) * 100));
+  }, [isCurrentTime, task.horario, task.duracao]);
+
   const getStatusIcon = () => {
     switch (task.status) {
       case 'concluida': return <CheckCircle className="text-success" />;
@@ -121,7 +131,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
           <div className="absolute top-0 right-0 w-16 h-16 bg-accent-purple/10 rounded-bl-full -z-10"></div>
         )}
         {isCurrentTime && !isActive && (
-          <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-400/10 rounded-bl-full -z-10"></div>
+          <>
+            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-400/10 rounded-bl-full -z-10"></div>
+            <div className="absolute bottom-0 left-0 h-1 bg-emerald-400 transition-all duration-1000 rounded-bl-2xl" style={{ width: `${progressPercentage}%` }}></div>
+          </>
         )}
         
         <div className="flex justify-between items-start mb-3">
@@ -141,7 +154,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                     : "bg-bg-sec border-border-subtle text-text-sec"
                 )}>
                   {task.horarioFixo && <Lock size={12} />}
-                  {task.horario} {task.horarioFixo ? '[FIXO]' : `- ${horarioFim}`}
+                  {task.horario} - {horarioFim}
                 </span>
                 <span>{task.titulo}</span>
               </span>
@@ -219,30 +232,38 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
           )}
           
           {task.tipoRepeticao === 'diasSemana' && task.diasSemana && task.diasSemana.length > 0 && (
-            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title="Dias de repetição">
+            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title={task.justificativaFrequencia || "Dias de repetição"}>
               <RefreshCw size={14} />
               <span className="font-medium">
                 Repete: {task.diasSemana.map(d => ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d]).join(', ')}
+                {task.dataInicio && task.dataFim && ` (${formatarData(task.dataInicio, 'dd/MM')} a ${formatarData(task.dataFim, 'dd/MM')})`}
               </span>
             </div>
           )}
           
           {task.tipoRepeticao === 'diaria' && (
-            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title="Repetição Diária">
+            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title={task.justificativaFrequencia || "Repetição Diária"}>
               <RefreshCw size={14} />
               <span className="font-medium">Repete: Diariamente</span>
             </div>
           )}
 
           {task.tipoRepeticao === 'semanal' && (
-            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title="Repetição Semanal">
+            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title={task.justificativaFrequencia || "Repetição Semanal"}>
               <RefreshCw size={14} />
               <span className="font-medium">Repete: Semanalmente</span>
             </div>
           )}
 
+          {task.tipoRepeticao === 'quinzenal' && (
+            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title={task.justificativaFrequencia || "Repetição Quinzenal"}>
+              <RefreshCw size={14} />
+              <span className="font-medium">Repete: Quinzenalmente</span>
+            </div>
+          )}
+
           {task.tipoRepeticao === 'mensal' && (
-            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title="Repetição Mensal">
+            <div className="flex items-center gap-1.5 bg-accent-blue/10 text-accent-blue px-2.5 py-1 rounded-md border border-accent-blue/20" title={task.justificativaFrequencia || "Repetição Mensal"}>
               <RefreshCw size={14} />
               <span className="font-medium">Repete: Mensalmente</span>
             </div>

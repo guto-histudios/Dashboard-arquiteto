@@ -141,6 +141,11 @@ export function TaskDetailsModal({ task, isOpen, onClose, onEdit, onDelete, onSt
                     Dias: {task.diasSemana.map(d => ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d]).join(', ')}
                   </span>
                 )}
+                {task.justificativaFrequencia && (
+                  <span className="block text-xs text-text-sec mt-2 italic border-l-2 border-accent-blue/30 pl-2 normal-case">
+                    "{task.justificativaFrequencia}"
+                  </span>
+                )}
               </div>
             </div>
 
