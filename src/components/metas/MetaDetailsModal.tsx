@@ -20,6 +20,30 @@ export function MetaDetailsModal({ meta, isOpen, onClose, onEdit, onDelete }: Me
 
   const isConcluida = meta.status === 'concluida';
   const isArquivada = meta.arquivada;
+  const isFalha = isArquivada && meta.resultado === 'falha';
+
+  const colorConfig = {
+    semanal: {
+      text: 'text-blue-500',
+      bg: 'bg-blue-500',
+      bgOpacity: 'bg-blue-500/10',
+      gradient: 'from-blue-500 to-blue-400'
+    },
+    mensal: {
+      text: 'text-green-500',
+      bg: 'bg-green-500',
+      bgOpacity: 'bg-green-500/10',
+      gradient: 'from-green-500 to-green-400'
+    },
+    trimestral: {
+      text: 'text-purple-500',
+      bg: 'bg-purple-500',
+      bgOpacity: 'bg-purple-500/10',
+      gradient: 'from-purple-500 to-purple-400'
+    }
+  };
+
+  const theme = colorConfig[meta.periodo as keyof typeof colorConfig] || colorConfig.semanal;
 
   const linkedTasks = meta.tasksVinculadas?.map(id => tasks.find(t => t.id === id)).filter(Boolean) || [];
   const linkedKpi = meta.kpiVinculado ? kpis.find(k => k.id === meta.kpiVinculado) : null;
@@ -62,7 +86,7 @@ export function MetaDetailsModal({ meta, isOpen, onClose, onEdit, onDelete }: Me
           <div className="flex items-center gap-3">
             <div className={clsx(
               "p-3 rounded-xl",
-              isConcluida ? "bg-success/10 text-success" : "bg-accent-blue/10 text-accent-blue"
+              isConcluida ? "bg-success/10 text-success" : isFalha ? "bg-red-500/10 text-red-500" : theme.bgOpacity + " " + theme.text
             )}>
               {isConcluida ? <CheckCircle size={24} /> : <Target size={24} />}
             </div>
@@ -111,7 +135,7 @@ export function MetaDetailsModal({ meta, isOpen, onClose, onEdit, onDelete }: Me
           <div>
             <h3 className="text-sm font-bold text-text-sec uppercase tracking-wider mb-2">Período</h3>
             <div className="flex items-center gap-2 text-sm text-white font-medium bg-bg-sec/50 p-3 rounded-xl border border-border-subtle/50 w-fit">
-              <Calendar size={16} className="text-accent-blue" />
+              <Calendar size={16} className={theme.text} />
               <span>{formatarData(meta.dataInicio)} até {formatarData(meta.dataFim)}</span>
             </div>
             {meta.deadline && (
@@ -129,12 +153,12 @@ export function MetaDetailsModal({ meta, isOpen, onClose, onEdit, onDelete }: Me
             <div className="w-full bg-bg-sec rounded-full h-3 border border-border-subtle overflow-hidden mb-2">
               <div 
                 className={clsx(
-                  "h-full rounded-full transition-all duration-1000 ease-out relative",
-                  isConcluida ? "bg-success" : "bg-gradient-to-r from-accent-blue to-accent-purple"
+                  "h-full rounded-full transition-all duration-1000 ease-out relative bg-gradient-to-r",
+                  isConcluida ? "from-success to-green-400" : isFalha ? "from-red-500 to-red-400" : theme.gradient
                 )}
                 style={{ width: `${progressoTotal}%` }}
               >
-                {!isConcluida && <div className="absolute inset-0 bg-white/20 animate-pulse"></div>}
+                {!isConcluida && !isFalha && <div className="absolute inset-0 bg-white/20 animate-pulse"></div>}
               </div>
             </div>
             
@@ -176,7 +200,7 @@ export function MetaDetailsModal({ meta, isOpen, onClose, onEdit, onDelete }: Me
               
               {linkedKpi && (
                 <div className="flex items-center gap-3 bg-bg-sec/50 p-3 rounded-xl border border-border-subtle">
-                  <div className="p-1.5 bg-bg-main rounded-md text-accent-blue">
+                  <div className={clsx("p-1.5 bg-bg-main rounded-md", theme.text)}>
                     <Target size={14} />
                   </div>
                   <div className="flex-1 min-w-0">

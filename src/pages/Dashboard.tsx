@@ -10,7 +10,7 @@ import { ProductivityWidget } from '../components/dashboard/ProductivityWidget';
 import { ResumoSemanal } from '../components/dashboard/ResumoSemanal';
 import { ProductivityComparison } from '../components/dashboard/ProductivityComparison';
 import { getDataStringBrasil, formatarData, deveMostrarTask } from '../utils/dataUtils';
-import { AlertTriangle, CheckCircle, Calendar, Target, Activity, Trophy, Star, Flame, Zap } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Calendar, Target, Activity, Trophy, Star, Flame, Zap, Briefcase, Award, Crown, Shield, Mountain, Sun, Flag, TrendingUp, ChevronUp, ChevronsUp, Sunrise, Moon, Clock, Focus, Wind, Infinity as InfinityIcon } from 'lucide-react';
 import { BadgeInfo } from '../types';
 
 export function Dashboard() {
@@ -52,6 +52,24 @@ export function Dashboard() {
       case 'Target': return <Target className={className} />;
       case 'Activity': return <Activity className={className} />;
       case 'CheckCircle': return <CheckCircle className={className} />;
+      case 'Briefcase': return <Briefcase className={className} />;
+      case 'Award': return <Award className={className} />;
+      case 'Crown': return <Crown className={className} />;
+      case 'Calendar': return <Calendar className={className} />;
+      case 'Shield': return <Shield className={className} />;
+      case 'Mountain': return <Mountain className={className} />;
+      case 'Sun': return <Sun className={className} />;
+      case 'Flag': return <Flag className={className} />;
+      case 'TrendingUp': return <TrendingUp className={className} />;
+      case 'ChevronUp': return <ChevronUp className={className} />;
+      case 'ChevronsUp': return <ChevronsUp className={className} />;
+      case 'Sunrise': return <Sunrise className={className} />;
+      case 'Moon': return <Moon className={className} />;
+      case 'Clock': return <Clock className={className} />;
+      case 'Focus': return <Focus className={className} />;
+      case 'Wind': return <Wind className={className} />;
+      case 'Infinity': return <InfinityIcon className={className} />;
+      case 'Fire': return <Flame className={className} />;
       default: return <Trophy className={className} />;
     }
   };

@@ -58,6 +58,32 @@ export const MetaCard: React.FC<MetaCardProps> = ({ meta, onUpdate, onDelete, on
   const isArquivada = meta.arquivada;
   const isFalha = isArquivada && meta.resultado === 'falha';
 
+  const colorConfig = {
+    semanal: {
+      text: 'text-blue-500',
+      bg: 'bg-blue-500',
+      borderL: 'border-l-blue-500',
+      bgOpacity: 'bg-blue-500/10',
+      gradient: 'from-blue-500 to-blue-400'
+    },
+    mensal: {
+      text: 'text-green-500',
+      bg: 'bg-green-500',
+      borderL: 'border-l-green-500',
+      bgOpacity: 'bg-green-500/10',
+      gradient: 'from-green-500 to-green-400'
+    },
+    trimestral: {
+      text: 'text-purple-500',
+      bg: 'bg-purple-500',
+      borderL: 'border-l-purple-500',
+      bgOpacity: 'bg-purple-500/10',
+      gradient: 'from-purple-500 to-purple-400'
+    }
+  };
+
+  const theme = colorConfig[meta.periodo as keyof typeof colorConfig] || colorConfig.semanal;
+
   // Calculate days remaining
   let diasRestantes = 0;
   let prazoTexto = '';
@@ -94,7 +120,7 @@ export const MetaCard: React.FC<MetaCardProps> = ({ meta, onUpdate, onDelete, on
         onClick={() => setIsModalOpen(true)}
         className={clsx(
           "glass-card p-6 border-l-4 relative group cursor-pointer hover:bg-bg-sec/40 transition-colors",
-          isConcluida ? "border-l-success" : isFalha ? "border-l-red-500" : "border-l-accent-blue",
+          isConcluida ? "border-l-success" : isFalha ? "border-l-red-500" : theme.borderL,
           isArquivada && "opacity-75 grayscale-[0.3]"
         )}
       >
@@ -110,7 +136,7 @@ export const MetaCard: React.FC<MetaCardProps> = ({ meta, onUpdate, onDelete, on
               
               {hasLinks && (
                 <div className="relative flex items-center">
-                  <div className="bg-bg-sec border border-border-subtle p-1.5 rounded-md text-accent-blue cursor-help">
+                  <div className={clsx("bg-bg-sec border border-border-subtle p-1.5 rounded-md cursor-help", theme.text)}>
                     <LinkIcon size={14} />
                   </div>
                   
@@ -146,8 +172,8 @@ export const MetaCard: React.FC<MetaCardProps> = ({ meta, onUpdate, onDelete, on
               <AlertTriangle className="text-red-500" size={24} />
             </div>
           ) : (
-            <div className="p-2 bg-accent-blue/10 rounded-xl">
-              <Target className="text-accent-blue" size={24} />
+            <div className={clsx("p-2 rounded-xl", theme.bgOpacity)}>
+              <Target className={theme.text} size={24} />
             </div>
           )}
         </div>
@@ -162,8 +188,8 @@ export const MetaCard: React.FC<MetaCardProps> = ({ meta, onUpdate, onDelete, on
           <div className="w-full bg-bg-sec rounded-full h-2.5 border border-border-subtle overflow-hidden">
             <div 
               className={clsx(
-                "h-full rounded-full transition-all duration-1000 ease-out relative",
-                isConcluida ? "bg-success" : isFalha ? "bg-red-500" : "bg-gradient-to-r from-accent-blue to-accent-purple"
+                "h-full rounded-full transition-all duration-1000 ease-out relative bg-gradient-to-r",
+                isConcluida ? "from-success to-green-400" : isFalha ? "from-red-500 to-red-400" : theme.gradient
               )}
               style={{ width: `${progressoTotal}%` }}
             >
@@ -190,7 +216,7 @@ export const MetaCard: React.FC<MetaCardProps> = ({ meta, onUpdate, onDelete, on
 
         <div className="flex items-center justify-between text-xs text-text-sec font-medium bg-bg-sec/50 p-2 rounded-lg border border-border-subtle/50">
           <div className="flex items-center gap-2">
-            <Calendar size={14} className="text-accent-blue" />
+            <Calendar size={14} className={theme.text} />
             <span>{formatarData(meta.dataInicio)}</span>
           </div>
           

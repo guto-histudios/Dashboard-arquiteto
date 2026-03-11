@@ -6,7 +6,7 @@ import { clsx } from 'clsx';
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
 export function PomodoroTimer() {
-  const { config, activeTaskId, setActiveTaskId, tasks, atualizarTask, addXP, addCoins } = useApp();
+  const { config, activeTaskId, setActiveTaskId, tasks, atualizarTask, addXP, addCoins, unlockBadge } = useApp();
   
   const [mode, setMode] = useState<TimerMode>('focus');
   const [timeLeft, setTimeLeft] = useState(config.duracaoPomodoro * 60);
@@ -69,6 +69,13 @@ export function PomodoroTimer() {
       // Add Coins
       addCoins(1, 'Pomodoro completado');
       
+      // Badges
+      unlockBadge('primo');
+      const totalPomodoros = tasks.reduce((acc, t) => acc + (t.pomodorosFeitos || 0), 0) + 1;
+      if (totalPomodoros >= 10) {
+        unlockBadge('focado');
+      }
+      
       // Update task if active
       if (activeTaskId && activeTask) {
         atualizarTask(activeTaskId, {
@@ -90,7 +97,7 @@ export function PomodoroTimer() {
       setTimeLeft(config.duracaoPomodoro * 60);
       sendNotification('Pausa Terminada!', 'Hora de voltar ao foco.');
     }
-  }, [mode, pomodorosCompleted, activeTaskId, activeTask, atualizarTask, config, playAlertSound, sendNotification, addXP]);
+  }, [mode, pomodorosCompleted, activeTaskId, activeTask, atualizarTask, config, playAlertSound, sendNotification, addXP, unlockBadge, tasks]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

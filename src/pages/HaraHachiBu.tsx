@@ -5,7 +5,7 @@ import { NutritionDashboard } from '../components/nutrition/NutritionDashboard';
 import { Utensils, Edit2 } from 'lucide-react';
 
 export function HaraHachiBu() {
-  const { profile, plan, loading, generating, updateProfile, generatePlan } = useNutrition();
+  const { profile, plan, loading, generating, updateProfile, generatePlan, selectOption } = useNutrition();
   const [isEditing, setIsEditing] = useState(false);
 
   if (loading) {
@@ -76,6 +76,7 @@ export function HaraHachiBu() {
                plan={plan}
                profile={profile}
                onRegenerate={handleRegenerate}
+               onSelectOption={selectOption}
              />
            ) : (
              <div className="text-center py-10 glass-card">

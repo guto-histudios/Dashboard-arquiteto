@@ -6,7 +6,8 @@ import { useKPIs } from '../hooks/useKPIs';
 import { useConfiguracoes } from '../hooks/useConfiguracoes';
 import { useGamification, BADGES_INFO } from '../hooks/useGamification';
 import { useHaraHachiBu } from '../hooks/useHaraHachiBu';
-import { Task, Habito, Meta, KPI, Configuracao, HorarioFixo, UserProfile, TaskStatus, HealthData, WorkoutPlan, GamificationState, BadgeInfo, DailyMeals, Recompensa } from '../types';
+import { useWeeklyReports } from '../hooks/useWeeklyReports';
+import { Task, Habito, Meta, KPI, Configuracao, HorarioFixo, UserProfile, TaskStatus, HealthData, WorkoutPlan, GamificationState, BadgeInfo, DailyMeals, Recompensa, WeeklyReport } from '../types';
 import { getDataStringBrasil } from '../utils/dataUtils';
 import { THEMES } from '../utils/themeUtils';
 
@@ -70,6 +71,13 @@ interface AppContextData {
   spendCoins: (amount: number, description: string) => boolean;
   buyReward: (reward: Recompensa) => boolean;
   useReward: (compraId: string) => void;
+  recentBadges: string[];
+  clearRecentBadge: (badgeId: string) => void;
+
+  // Weekly Reports
+  weeklyReports: WeeklyReport[];
+  generateWeeklyReport: () => WeeklyReport;
+  deleteWeeklyReport: (id: string) => void;
 
   carregando: boolean;
   activeTaskId: string | null;
@@ -88,10 +96,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const configHook = useConfiguracoes();
   const gamificationHook = useGamification();
   const haraHachiBuHook = useHaraHachiBu();
+  const weeklyReportsHook = useWeeklyReports();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
-  const carregando = tasksHook.carregando || habitosHook.carregando || metasHook.carregando || kpisHook.carregando || configHook.carregando || gamificationHook.carregando || haraHachiBuHook.carregando;
+  const carregando = tasksHook.carregando || habitosHook.carregando || metasHook.carregando || kpisHook.carregando || configHook.carregando || gamificationHook.carregando || haraHachiBuHook.carregando || weeklyReportsHook.carregando;
 
   // Auto-create tasks for fixed schedules
   useEffect(() => {
@@ -162,6 +171,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (concluidaHoje >= 10) {
           gamificationHook.unlockBadge('maratonista');
         }
+
+        // Badges: Trabalhador, Dedicado, Mestre
+        const totalConcluidas = tasksHook.tasks.filter(t => t.status === 'concluida').length + 1;
+        if (totalConcluidas >= 50) gamificationHook.unlockBadge('trabalhador');
+        if (totalConcluidas >= 100) gamificationHook.unlockBadge('dedicado');
+        if (totalConcluidas >= 500) gamificationHook.unlockBadge('mestre_tasks');
+
+        // Badges: Madrugador, Noite Alta
+        const horaAtual = new Date().getHours();
+        if (horaAtual < 7) gamificationHook.unlockBadge('madrugador');
+        if (horaAtual >= 23) gamificationHook.unlockBadge('noite_alta');
       }
 
       if (task.kpiVinculado) {
@@ -225,10 +245,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     
     habitosHook.habitos.forEach(h => {
       if (h.streak >= 7) {
-        gamificationHook.unlockBadge('7_dias');
+        gamificationHook.unlockBadge('consistente');
       }
       if (h.streak >= 30) {
-        gamificationHook.unlockBadge('30_dias');
+        gamificationHook.unlockBadge('disciplinado');
+      }
+      if (h.streak >= 100) {
+        gamificationHook.unlockBadge('inabalavel');
+      }
+      if (h.streak >= 365) {
+        gamificationHook.unlockBadge('lendario_habitos');
+      }
+
+      // Zen: manteve streak de hábitos no final de semana
+      const hoje = getDataStringBrasil();
+      const diaSemana = new Date(hoje).getDay();
+      if ((diaSemana === 0 || diaSemana === 6) && h.streak > 0) {
+        const completedToday = h.conclusoes.some(c => c.data === hoje && c.concluido);
+        if (completedToday) {
+          gamificationHook.unlockBadge('zen');
+        }
       }
     });
   }, [habitosHook.habitos, carregando]);
@@ -242,7 +278,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (gamificationHook.gamification.streakDias >= 30) {
       gamificationHook.unlockBadge('30_dias');
     }
+    if (gamificationHook.gamification.streakDias >= 100) {
+      gamificationHook.unlockBadge('100_dias');
+    }
+    if (gamificationHook.gamification.streakDias >= 365) {
+      gamificationHook.unlockBadge('365_dias');
+    }
   }, [gamificationHook.gamification.streakDias, carregando]);
+
+  // Check level badges
+  useEffect(() => {
+    if (carregando) return;
+    const levelInfo = gamificationHook.getLevelInfo(gamificationHook.gamification.totalXP);
+    if (levelInfo.nivel >= 5) gamificationHook.unlockBadge('novato');
+    if (levelInfo.nivel >= 10) gamificationHook.unlockBadge('veterano');
+    if (levelInfo.nivel >= 25) gamificationHook.unlockBadge('especialista');
+    if (levelInfo.nivel >= 50) gamificationHook.unlockBadge('mestre_nivel');
+    if (levelInfo.nivel >= 100) gamificationHook.unlockBadge('lendario_nivel');
+  }, [gamificationHook.gamification.totalXP, carregando]);
 
   // Automatic KPIs Update
   useEffect(() => {
@@ -345,6 +398,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (novoStatus === 'concluida' && meta.status !== 'concluida') {
             gamificationHook.addXP(50);
             gamificationHook.unlockBadge('meta_breaker');
+            
+            const totalMetasConcluidas = metasHook.metas.filter(m => m.status === 'concluida').length + 1;
+            if (totalMetasConcluidas >= 5) gamificationHook.unlockBadge('conquistador');
+            if (totalMetasConcluidas >= 20) gamificationHook.unlockBadge('realizador');
+            if (totalMetasConcluidas >= 50) gamificationHook.unlockBadge('gloria');
           }
 
           return { ...meta, progresso: progressoTotal, status: novoStatus };
@@ -382,6 +440,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       atualizarMeta: (id, updates) => {
         metasHook.atualizarMeta(id, updates, (meta) => {
             gamificationHook.addCoins(20, `Meta concluída: ${meta.titulo}`);
+            gamificationHook.addXP(50);
+            gamificationHook.unlockBadge('meta_breaker');
+            
+            const totalMetasConcluidas = metasHook.metas.filter(m => m.status === 'concluida').length + 1;
+            if (totalMetasConcluidas >= 5) gamificationHook.unlockBadge('conquistador');
+            if (totalMetasConcluidas >= 20) gamificationHook.unlockBadge('realizador');
+            if (totalMetasConcluidas >= 50) gamificationHook.unlockBadge('gloria');
         });
       },
       removerMeta: metasHook.removerMeta,
@@ -419,6 +484,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       spendCoins: gamificationHook.spendCoins,
       buyReward: gamificationHook.buyReward,
       useReward: gamificationHook.useReward,
+      recentBadges: gamificationHook.recentBadges,
+      clearRecentBadge: gamificationHook.clearRecentBadge,
+
+      weeklyReports: weeklyReportsHook.reports,
+      generateWeeklyReport: () => weeklyReportsHook.generateReport(
+        tasksHook.tasks,
+        habitosHook.habitos,
+        metasHook.metas,
+        gamificationHook.gamification,
+        gamificationHook.getLevelInfo(gamificationHook.gamification.totalXP).nivel
+      ),
+      deleteWeeklyReport: weeklyReportsHook.deleteReport,
 
       carregando,
       activeTaskId,

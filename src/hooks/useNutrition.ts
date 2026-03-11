@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NutritionProfile, NutritionPlan, MealItem } from '../types';
 import { getStorageItem, setStorageItem } from '../utils/storageUtils';
 import { GoogleGenAI, Type } from "@google/genai";
+import { v4 as uuidv4 } from 'uuid';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -75,7 +76,7 @@ export function useNutrition() {
       const metrics = calculateMetrics(currentProfile);
       
       const prompt = `
-        Crie um plano alimentar diário personalizado baseado nos seguintes dados:
+        Crie um plano alimentar diário personalizado com 3 OPÇÕES diferentes baseado nos seguintes dados:
         - Perfil: ${currentProfile.genero}, ${currentProfile.idade} anos, ${currentProfile.peso}kg, ${currentProfile.altura}cm
         - Objetivo: ${currentProfile.objetivo}
         - Calorias Meta: ${Math.round(metrics.caloriasMeta)} kcal
@@ -86,21 +87,34 @@ export function useNutrition() {
         - Não gosta: ${currentProfile.naoGosta}
         
         O plano deve seguir o princípio Hara Hachi Bu (comer até 80% da saciedade), focando em alimentos nutritivos e volumes adequados.
+        Em cada refeição, adicione uma dica Hara Hachi Bu específica.
+        
+        Gere 3 opções diferentes:
+        - Opção A: Mais leve, menos calorias (ideal para dias menos ativos)
+        - Opção B: Mais proteica, foco em músculo (ideal para dias de treino)
+        - Opção C: Balanceada, média calorias
         
         Retorne APENAS um JSON com a seguinte estrutura:
         {
-          "refeicoes": [
+          "opcoes": [
             {
-              "nome": "Nome da refeição (ex: Café da Manhã)",
-              "horario": "Horário sugerido",
-              "prato": "Nome do prato principal",
-              "ingredientes": ["Lista de ingredientes"],
-              "quantidadeGramas": 0,
-              "calorias": 0,
-              "macros": { "proteina": 0, "carboidratos": 0, "gorduras": 0 }
+              "nome": "Nome da opção (ex: Opção Leve)",
+              "refeicoes": [
+                {
+                  "nome": "Nome da refeição (ex: Café da Manhã)",
+                  "horario": "Horário sugerido",
+                  "prato": "Nome do prato principal",
+                  "ingredientes": ["Lista de ingredientes"],
+                  "quantidadeGramas": 0,
+                  "calorias": 0,
+                  "macros": { "proteina": 0, "carboidratos": 0, "gorduras": 0 }
+                }
+              ],
+              "caloriasTotais": 0,
+              "macrosTotais": { "proteina": 0, "carboidratos": 0, "gorduras": 0 }
             }
           ],
-          "dicasHaraHachiBu": ["Dica 1", "Dica 2", "Dica 3"]
+          "dicasHaraHachiBu": ["Dica geral 1", "Dica geral 2", "Dica geral 3"]
         }
       `;
 
@@ -112,18 +126,36 @@ export function useNutrition() {
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              refeicoes: {
+              opcoes: {
                 type: Type.ARRAY,
                 items: {
                   type: Type.OBJECT,
                   properties: {
                     nome: { type: Type.STRING },
-                    horario: { type: Type.STRING },
-                    prato: { type: Type.STRING },
-                    ingredientes: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    quantidadeGramas: { type: Type.NUMBER },
-                    calorias: { type: Type.NUMBER },
-                    macros: {
+                    refeicoes: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          nome: { type: Type.STRING },
+                          horario: { type: Type.STRING },
+                          prato: { type: Type.STRING },
+                          ingredientes: { type: Type.ARRAY, items: { type: Type.STRING } },
+                          quantidadeGramas: { type: Type.NUMBER },
+                          calorias: { type: Type.NUMBER },
+                          macros: {
+                            type: Type.OBJECT,
+                            properties: {
+                              proteina: { type: Type.NUMBER },
+                              carboidratos: { type: Type.NUMBER },
+                              gorduras: { type: Type.NUMBER }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    caloriasTotais: { type: Type.NUMBER },
+                    macrosTotais: {
                       type: Type.OBJECT,
                       properties: {
                         proteina: { type: Type.NUMBER },
@@ -147,7 +179,7 @@ export function useNutrition() {
       
       const newPlan: NutritionPlan = {
         ...metrics,
-        refeicoes: result.refeicoes,
+        opcoes: result.opcoes.map((opt: any) => ({ ...opt, id: uuidv4() })),
         dicasHaraHachiBu: result.dicasHaraHachiBu
       };
 
@@ -166,6 +198,13 @@ export function useNutrition() {
     setProfile(newProfile);
   };
 
+  const selectOption = (optionId: string) => {
+    if (plan) {
+      const updatedPlan = { ...plan, opcaoEscolhidaId: optionId };
+      setPlan(updatedPlan);
+    }
+  };
+
   return {
     profile,
     plan,
@@ -173,6 +212,7 @@ export function useNutrition() {
     generating,
     updateProfile,
     generatePlan,
-    calculateMetrics
+    calculateMetrics,
+    selectOption
   };
 }

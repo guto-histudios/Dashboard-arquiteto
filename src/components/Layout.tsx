@@ -26,6 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { name: 'Hara Hachi Bu', href: '/harahachibu', icon: Utensils },
     { name: 'Loja', href: '/loja', icon: ShoppingBag },
     { name: 'Analytics', href: '/analytics', icon: BarChart2 },
+    { name: 'Avaliação Semanal', href: '/avaliacao-semanal', icon: Activity },
     { name: 'Configurações', href: '/configuracoes', icon: Settings },
   ];
 

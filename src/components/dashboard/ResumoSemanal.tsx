@@ -105,6 +105,11 @@ export function ResumoSemanal() {
 
   const hasReflection = learned || improve || grateful || nextWeek;
 
+  const tasksDiff = previousSummary ? summary.tasksCompleted - previousSummary.tasksCompleted : 0;
+  const habitsDiff = previousSummary ? summary.habitsCompleted - previousSummary.habitsCompleted : 0;
+  const isTasksImproved = tasksDiff >= 0;
+  const isHabitsImproved = habitsDiff >= 0;
+
   return (
     <div className="glass-card p-6 md:p-8 relative overflow-hidden mt-8">
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-accent-blue/10 to-transparent rounded-bl-full -z-10"></div>
@@ -167,7 +172,7 @@ export function ResumoSemanal() {
               </div>
               <div>
                 <p className="text-sm text-text-sec">Manteve</p>
-                <p className="font-bold text-white">{summary.habitsCompleted} hábitos</p>
+                <p className="font-bold text-white">{summary.habitsCompleted} de {summary.habitsTotal} hábitos</p>
               </div>
             </div>
 
@@ -177,7 +182,7 @@ export function ResumoSemanal() {
               </div>
               <div>
                 <p className="text-sm text-text-sec">Completou</p>
-                <p className="font-bold text-white">{summary.metasCompleted} metas</p>
+                <p className="font-bold text-white">{summary.metasCompleted} de {summary.metasTotal} metas</p>
               </div>
             </div>
 
@@ -185,9 +190,15 @@ export function ResumoSemanal() {
               <div className="p-2 bg-warning/10 rounded-lg text-warning">
                 <Star size={20} />
               </div>
-              <div>
+              <div className="w-full">
                 <p className="text-sm text-text-sec">Ganhou</p>
                 <p className="font-bold text-white">{summary.xpEarned} XP <span className="text-xs font-normal text-text-sec">(Nível {summary.levelReached})</span></p>
+                <div className="flex gap-2 mt-1 text-[10px] text-text-sec">
+                  <span title="Tasks">T: {summary.xpBreakdown?.tasks || 0}</span>
+                  <span title="Hábitos">H: {summary.xpBreakdown?.habits || 0}</span>
+                  <span title="Metas">M: {summary.xpBreakdown?.metas || 0}</span>
+                  <span title="Pomodoros">P: {summary.xpBreakdown?.pomodoros || 0}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -209,10 +220,22 @@ export function ResumoSemanal() {
           
           {/* Chart */}
           <div className="bg-bg-sec/30 p-5 rounded-2xl border border-border-subtle">
-            <h3 className="text-sm font-bold text-text-sec uppercase tracking-wider mb-4 flex items-center gap-2">
-              <TrendingUp size={16} />
-              Comparação com Semana Passada
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-text-sec uppercase tracking-wider flex items-center gap-2">
+                <TrendingUp size={16} />
+                Comparação com Semana Passada
+              </h3>
+              {previousSummary && (
+                <div className="flex gap-3 text-xs">
+                  <span className={isTasksImproved ? "text-success" : "text-red-500"}>
+                    Tarefas: {tasksDiff > 0 ? '+' : ''}{tasksDiff}
+                  </span>
+                  <span className={isHabitsImproved ? "text-success" : "text-red-500"}>
+                    Hábitos: {habitsDiff > 0 ? '+' : ''}{habitsDiff}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>

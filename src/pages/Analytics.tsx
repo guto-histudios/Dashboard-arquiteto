@@ -110,12 +110,15 @@ export function Analytics() {
 
   const metasBarData = useMemo(() => {
     const periods = ['semanal', 'mensal', 'trimestral'];
+    const colors = { semanal: '#3b82f6', mensal: '#22c55e', trimestral: '#8b5cf6' };
     return periods.map(p => {
       const periodMetas = metas.filter(m => m.periodo === p);
       return {
         name: p.charAt(0).toUpperCase() + p.slice(1),
+        Total: periodMetas.length,
         Concluídas: periodMetas.filter(m => m.status === 'concluida').length,
         Pendentes: periodMetas.filter(m => m.status !== 'concluida').length,
+        fill: colors[p as keyof typeof colors]
       };
     });
   }, [metas]);
@@ -335,9 +338,11 @@ export function Analytics() {
                 <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                 <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                 <RechartsTooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="Concluídas" stackId="a" fill="#10b981" radius={[0, 0, 4, 4]} barSize={30} />
-                <Bar dataKey="Pendentes" stackId="a" fill="#374151" radius={[4, 4, 0, 0]} barSize={30} />
+                <Bar dataKey="Total" radius={[4, 4, 0, 0]} barSize={40}>
+                  {metasBarData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

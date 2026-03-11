@@ -60,18 +60,17 @@ export const RewardCard: React.FC<RewardCardProps> = ({ reward, onBuy, canAfford
         
         <button
           onClick={() => onBuy(reward)}
-          disabled={!canAfford}
           className={clsx(
             "px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 flex items-center gap-2",
             canAfford 
               ? "bg-bg-sec hover:bg-success hover:text-white text-text-main border border-border-subtle hover:border-success" 
-              : "bg-bg-main text-text-sec opacity-50 cursor-not-allowed border border-transparent"
+              : "bg-bg-main text-text-sec border border-border-subtle hover:border-error hover:text-error"
           )}
         >
           {canAfford ? (
-            <>Comprar</>
+            <>Resgatar</>
           ) : (
-            <><Lock size={14} /> Bloqueado</>
+            <><Lock size={14} /> Resgatar</>
           )}
         </button>
       </div>

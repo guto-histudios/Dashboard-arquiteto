@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { HealthData, WorkoutPlan, Meta, MetaPeriodo } from "../types";
+import { HealthData, WorkoutPlan, Meta, MetaPeriodo, Task, KPI } from "../types";
 import { v4 as uuidv4 } from 'uuid';
 import { getDataStringBrasil } from "../utils/dataUtils";
 import { addDays, endOfWeek, endOfMonth, endOfQuarter, format } from "date-fns";
@@ -313,12 +313,21 @@ export async function generateDarebeePlan(healthData: HealthData): Promise<Worko
   }
 }
 
-export async function generateMetas(userProfile: any): Promise<Meta[]> {
+export async function generateMetas(userProfile: any, tasks: Task[] = [], kpis: KPI[] = []): Promise<Meta[]> {
+  const tasksList = tasks.map(t => `- ID: ${t.id} | Título: ${t.titulo}`).join('\n');
+  const kpisList = kpis.map(k => `- ID: ${k.id} | Título: ${k.titulo}`).join('\n');
+
   const prompt = `
     Crie 9 metas para o usuário baseado no seu perfil:
     Nome: ${userProfile?.nome || 'Usuário'}
     Objetivos: ${userProfile?.objetivos || 'Melhorar produtividade e saúde'}
     Rotina Atual: ${userProfile?.rotina || 'Ocupada'}
+
+    Tasks Existentes:
+    ${tasksList || 'Nenhuma task existente.'}
+
+    KPIs Existentes:
+    ${kpisList || 'Nenhum KPI existente.'}
 
     Você deve gerar exatamente:
     - 3 metas SEMANAIS (curto prazo, acionáveis)
@@ -326,7 +335,8 @@ export async function generateMetas(userProfile: any): Promise<Meta[]> {
     - 3 metas TRIMESTRAIS (longo prazo, grandes marcos)
 
     IMPORTANTE: Toda meta DEVE estar vinculada a uma Task ou a um KPI.
-    Se não houver uma Task ou KPI existente que faça sentido, você DEVE sugerir a criação de um novo.
+    Você pode vincular a uma Task ou KPI existente retornando o ID correspondente em "vinculoExistente".
+    Se não houver uma Task ou KPI existente que faça sentido, você DEVE sugerir a criação de um novo em "sugestaoVinculo".
     
     Retorne APENAS um objeto JSON com a seguinte estrutura:
     {
@@ -336,6 +346,10 @@ export async function generateMetas(userProfile: any): Promise<Meta[]> {
           "descricao": "string",
           "periodo": "semanal" | "mensal" | "trimestral",
           "metaProgresso": number (valor alvo, ex: 100 para 100%, 10 para 10 livros, etc),
+          "vinculoExistente": {
+            "tipo": "task" | "kpi",
+            "id": "string (ID da task ou kpi existente)"
+          },
           "sugestaoVinculo": {
             "tipo": "task" | "kpi",
             "titulo": "string (título da nova task ou kpi a ser criado)",
@@ -344,6 +358,7 @@ export async function generateMetas(userProfile: any): Promise<Meta[]> {
         }
       ]
     }
+    NOTA: Use "vinculoExistente" OU "sugestaoVinculo", não ambos.
   `;
 
   try {
@@ -377,8 +392,9 @@ export async function generateMetas(userProfile: any): Promise<Meta[]> {
         tasksVinculadas: [],
         ehIkigai: false,
         ehShokunin: false,
+        vinculoExistente: m.vinculoExistente,
         sugestaoVinculo: m.sugestaoVinculo
-      } as Meta & { sugestaoVinculo?: any };
+      } as Meta & { sugestaoVinculo?: any, vinculoExistente?: any };
     });
   } catch (error) {
     console.error("Erro ao gerar metas:", error);

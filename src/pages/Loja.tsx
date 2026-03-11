@@ -12,11 +12,25 @@ export function Loja() {
   const [activeTab, setActiveTab] = useState<'loja' | 'meus_rewards' | 'historico'>('loja');
 
   const handleBuy = (reward: Recompensa) => {
-    if (window.confirm(`Deseja comprar "${reward.titulo}" por ${reward.custo} moedas?`)) {
+    const saldoAtual = Number(gamification.moedas || 0);
+    const precoDaRecompensa = Number(reward.custo);
+
+    console.log(`[Loja] Tentativa de resgate: ${reward.titulo}`);
+    console.log(`[Loja] Saldo atual: ${saldoAtual} | Preço: ${precoDaRecompensa}`);
+
+    if (saldoAtual < precoDaRecompensa) {
+      console.log(`[Loja] Resgate negado: Moedas insuficientes.`);
+      alert('Moedas insuficientes');
+      return;
+    }
+
+    if (window.confirm(`Deseja resgatar "${reward.titulo}" por ${reward.custo} moedas?`)) {
       if (buyReward(reward)) {
-        alert('Compra realizada com sucesso!');
+        console.log(`[Loja] Resgate realizado com sucesso!`);
+        alert('Resgate realizado com sucesso!');
       } else {
-        alert('Saldo insuficiente!');
+        console.log(`[Loja] Erro inesperado no resgate.`);
+        alert('Moedas insuficientes');
       }
     }
   };
@@ -27,8 +41,8 @@ export function Loja() {
     }
   };
 
-  const rewardsNaoUsados = gamification.recompensasCompradas.filter(r => !r.usada);
-  const rewardsUsados = gamification.recompensasCompradas.filter(r => r.usada);
+  const rewardsNaoUsados = (gamification.recompensasCompradas || []).filter(r => !r.usada);
+  const rewardsUsados = (gamification.recompensasCompradas || []).filter(r => r.usada);
 
   return (
     <div className="space-y-8 pb-20">
@@ -101,7 +115,7 @@ export function Loja() {
                 key={reward.id} 
                 reward={reward} 
                 onBuy={handleBuy} 
-                canAfford={gamification.moedas >= reward.custo} 
+                canAfford={Number(gamification.moedas || 0) >= Number(reward.custo)} 
               />
             ))}
           </div>
@@ -185,8 +199,8 @@ export function Loja() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle">
-                  {gamification.historicoMoedas.length > 0 ? (
-                    gamification.historicoMoedas.map(transacao => (
+                  {(gamification.historicoMoedas || []).length > 0 ? (
+                    (gamification.historicoMoedas || []).map(transacao => (
                       <tr key={transacao.id} className="hover:bg-bg-sec/50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-text-sec">
                           {formatarData(transacao.data)}

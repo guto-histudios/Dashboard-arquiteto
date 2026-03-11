@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { startOfWeek, endOfWeek, format, isWithinInterval } from 'date-fns';
 import { useApp } from '../contexts/AppContext';
-import { deveMostrarTask } from '../utils/dataUtils';
 
 export interface WeeklySummaryData {
   id: string;
@@ -10,8 +9,16 @@ export interface WeeklySummaryData {
   tasksCompleted: number;
   tasksTotal: number;
   habitsCompleted: number;
+  habitsTotal: number;
   metasCompleted: number;
+  metasTotal: number;
   xpEarned: number;
+  xpBreakdown: {
+    tasks: number;
+    habits: number;
+    metas: number;
+    pomodoros: number;
+  };
   levelReached: number;
   bestDay: string;
   totalPomodoros: number;
@@ -44,25 +51,55 @@ export function useResumoSemanal() {
     const id = format(start, 'yyyy-MM-dd');
 
     const existing = summaries.find(s => s.id === id);
-    if (existing) return existing;
+    if (existing) {
+      // Return existing but ensure new fields are present for backward compatibility
+      return {
+        ...existing,
+        habitsTotal: existing.habitsTotal ?? habitos.length,
+        metasTotal: existing.metasTotal ?? metas.filter(m => m.periodo === 'semanal' && m.dataInicio <= existing.endDate && m.dataFim >= existing.startDate).length,
+        xpBreakdown: existing.xpBreakdown ?? { tasks: 0, habits: 0, metas: 0, pomodoros: 0 }
+      };
+    }
+
+    const startStr = format(start, 'yyyy-MM-dd');
+    const endStr = format(end, 'yyyy-MM-dd');
 
     const isDateInWeek = (dateStr: string) => {
-      const d = new Date(dateStr);
-      return isWithinInterval(d, { start, end });
+      return dateStr >= startStr && dateStr <= endStr;
     };
 
-    const weekTasks = tasks.filter(t => isDateInWeek(t.data) && t.status !== 'cancelada' && (!t.deadline || t.deadline >= t.data) && deveMostrarTask(t, t.data));
+    // 1. Tasks da semana
+    const weekTasks = tasks.filter(t => isDateInWeek(t.data) && t.status !== 'cancelada');
     const tasksCompleted = weekTasks.filter(t => t.status === 'concluida').length;
     const tasksTotal = weekTasks.length;
     const totalPomodoros = weekTasks.reduce((acc, t) => acc + (t.pomodorosFeitos || 0), 0);
 
+    // 2. Hábitos mantidos
     let habitsCompleted = 0;
+    const habitsTotal = habitos.length;
+    let totalHabitCompletions = 0;
     habitos.forEach(h => {
       const conclusoesNaSemana = h.conclusoes.filter(c => c.concluido && isDateInWeek(c.data));
-      habitsCompleted += conclusoesNaSemana.length;
+      totalHabitCompletions += conclusoesNaSemana.length;
+      if (conclusoesNaSemana.length >= 3) {
+        habitsCompleted++;
+      }
     });
 
-    const metasCompleted = metas.filter(m => m.status === 'concluida' && isDateInWeek(m.dataFim)).length;
+    // 3. Metas
+    const weekMetas = metas.filter(m => 
+      m.periodo === 'semanal' && 
+      ((m.dataInicio <= endStr && m.dataFim >= startStr) || isDateInWeek(m.dataFim))
+    );
+    const metasCompleted = weekMetas.filter(m => m.status === 'concluida').length;
+    const metasTotal = weekMetas.length;
+
+    // 4. XP gained
+    const xpTasks = tasksCompleted * 10;
+    const xpHabits = totalHabitCompletions * 5;
+    const xpMetas = metasCompleted * 50;
+    const xpPomodoros = totalPomodoros * 3;
+    const xpEarned = xpTasks + xpHabits + xpMetas + xpPomodoros;
 
     const daysCount: Record<string, number> = {};
     weekTasks.filter(t => t.status === 'concluida').forEach(t => {
@@ -78,17 +115,24 @@ export function useResumoSemanal() {
     });
 
     const levelInfo = getLevelInfo(gamification.totalXP);
-    const xpEarned = (tasksCompleted * 10) + (habitsCompleted * 5) + (metasCompleted * 50);
 
     return {
       id,
-      startDate: format(start, 'yyyy-MM-dd'),
-      endDate: format(end, 'yyyy-MM-dd'),
+      startDate: startStr,
+      endDate: endStr,
       tasksCompleted,
       tasksTotal,
       habitsCompleted,
+      habitsTotal,
       metasCompleted,
+      metasTotal,
       xpEarned,
+      xpBreakdown: {
+        tasks: xpTasks,
+        habits: xpHabits,
+        metas: xpMetas,
+        pomodoros: xpPomodoros
+      },
       levelReached: levelInfo.nivel,
       bestDay,
       totalPomodoros,

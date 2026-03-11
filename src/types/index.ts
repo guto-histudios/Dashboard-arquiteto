@@ -231,11 +231,14 @@ export interface Meal {
 
 export interface MealOption {
   id: string;
-  cafeDaManha: Meal;
-  almoco: Meal;
-  lancheDaTarde: Meal;
-  jantar: Meal;
+  nome: string;
+  refeicoes: MealItem[];
   caloriasTotais: number;
+  macrosTotais: {
+    proteina: number;
+    carboidratos: number;
+    gorduras: number;
+  };
 }
 
 export interface DailyMeals {
@@ -282,6 +285,46 @@ export interface NutritionPlan {
     carboidratos: number;
     gorduras: number;
   };
-  refeicoes: MealItem[];
+  opcoes: MealOption[];
+  opcaoEscolhidaId?: string;
   dicasHaraHachiBu: string[];
+}
+
+export interface WeeklyReport {
+  id: string;
+  dataInicio: string; // YYYY-MM-DD
+  dataFim: string; // YYYY-MM-DD
+  dataGeracao: string; // YYYY-MM-DD
+  
+  // Metricas
+  tasksConcluidas: number;
+  tasksPlanejadas: number;
+  habitosConcluidos: number;
+  habitosPlanejados: number;
+  metasAtingidas: number;
+  metasPlanejadas: number;
+  xpGanho: number;
+  pomodorosCompletados: number;
+  streakAtual: number;
+  nivelAtual: number;
+  
+  // Analise
+  pontosPositivos: string[];
+  pontosMelhoria: string[];
+  pendencias: string[];
+  
+  // Descritivo
+  resumo: string;
+  
+  // Areas de Evolucao
+  sugestoesAreas: {
+    carreira?: string;
+    saude?: string;
+    pessoal?: string;
+    financas?: string;
+    educacao?: string;
+  };
+  
+  // Foco para proxima semana
+  focoProximaSemana?: string;
 }

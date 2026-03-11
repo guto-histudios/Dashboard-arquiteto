@@ -27,19 +27,28 @@ export function Metas() {
   const archivedSuccess = archivedMetas.filter(m => m.resultado === 'sucesso');
   const archivedFailure = archivedMetas.filter(m => m.resultado === 'falha');
 
+  const isLocked = tasks.length === 0 || kpis.length === 0;
+
   // Auto-generate if empty
   useEffect(() => {
     const autoGenerate = async () => {
-      if (metas.length === 0 && !isGenerating && (tasks.length > 0 || kpis.length > 0)) {
+      if (metas.length === 0 && !isGenerating && !isLocked) {
         setIsGenerating(true);
         try {
-          const novasMetas = await generateMetas(userProfile);
+          const novasMetas = await generateMetas(userProfile, tasks, kpis);
           
           novasMetas.forEach((m: any) => {
             let metaToSave = { ...m };
             
             // Auto-create linked Task or KPI if suggested
-            if (m.sugestaoVinculo) {
+            if (m.vinculoExistente) {
+              if (m.vinculoExistente.tipo === 'task') {
+                metaToSave.tasksVinculadas = [m.vinculoExistente.id];
+              } else if (m.vinculoExistente.tipo === 'kpi') {
+                metaToSave.kpiVinculado = m.vinculoExistente.id;
+              }
+              delete metaToSave.vinculoExistente;
+            } else if (m.sugestaoVinculo) {
               if (m.sugestaoVinculo.tipo === 'task') {
                 const newTask: Task = {
                   id: uuidv4(),
@@ -87,11 +96,11 @@ export function Metas() {
     
     // Only auto-generate once when the component mounts and metas is empty
     const timer = setTimeout(() => {
-      if (metas.length === 0 && (tasks.length > 0 || kpis.length > 0)) autoGenerate();
+      if (metas.length === 0 && !isLocked) autoGenerate();
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [metas.length, userProfile, tasks.length, kpis.length]);
+  }, [metas.length, userProfile, isLocked]);
 
   const handleUpdateMeta = async (id: string, updates: Partial<Meta>) => {
     atualizarMeta(id, updates);
@@ -140,20 +149,27 @@ export function Metas() {
   };
 
   const handleGenerateAI = async () => {
-    if (tasks.length === 0 && kpis.length === 0) {
-      alert("Para gerar metas, você precisa ter pelo menos 1 KPI ou 1 Task cadastrada.");
+    if (isLocked) {
+      alert("Para gerar metas, você precisa ter pelo menos 1 KPI e 1 Task cadastrada.");
       return;
     }
 
     setIsGenerating(true);
     try {
-      const novasMetas = await generateMetas(userProfile);
+      const novasMetas = await generateMetas(userProfile, tasks, kpis);
       
       novasMetas.forEach((m: any) => {
         let metaToSave = { ...m };
         
         // Auto-create linked Task or KPI if suggested
-        if (m.sugestaoVinculo) {
+        if (m.vinculoExistente) {
+          if (m.vinculoExistente.tipo === 'task') {
+            metaToSave.tasksVinculadas = [m.vinculoExistente.id];
+          } else if (m.vinculoExistente.tipo === 'kpi') {
+            metaToSave.kpiVinculado = m.vinculoExistente.id;
+          }
+          delete metaToSave.vinculoExistente;
+        } else if (m.sugestaoVinculo) {
           if (m.sugestaoVinculo.tipo === 'task') {
             const newTask: Task = {
               id: uuidv4(),
@@ -235,9 +251,9 @@ export function Metas() {
             <>
               <button 
                 onClick={handleGenerateAI}
-                disabled={isGenerating || (tasks.length === 0 && kpis.length === 0)}
-                className={`btn-secondary flex items-center gap-2 ${tasks.length === 0 && kpis.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title={tasks.length === 0 && kpis.length === 0 ? "Crie pelo menos 1 Task ou KPI primeiro" : ""}
+                disabled={isGenerating || isLocked}
+                className={`btn-secondary flex items-center gap-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isLocked ? "Crie pelo menos 1 Task e 1 KPI primeiro" : ""}
               >
                 {isGenerating ? (
                   <div className="w-5 h-5 border-2 border-text-sec border-t-transparent rounded-full animate-spin"></div>
@@ -248,7 +264,9 @@ export function Metas() {
               </button>
               <button 
                 onClick={() => setIsFormOpen(true)}
-                className="btn-primary flex items-center gap-2"
+                disabled={isLocked}
+                className={`btn-primary flex items-center gap-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isLocked ? "Crie pelo menos 1 Task e 1 KPI primeiro" : ""}
               >
                 <Plus size={20} />
                 Nova Meta
@@ -326,32 +344,44 @@ export function Metas() {
             </div>
           )}
         </div>
+      ) : isLocked ? (
+        <div className="glass-card flex flex-col items-center justify-center py-16 text-center border-accent-blue/30">
+          <div className="w-20 h-20 bg-accent-blue/10 rounded-full flex items-center justify-center mb-6 border border-accent-blue/30">
+            <AlertTriangle size={40} className="text-accent-blue" />
+          </div>
+          <h3 className="text-xl font-medium mb-2">Gere suas KPIs e Tasks primeiro</h3>
+          <p className="text-text-sec mb-6 max-w-md">
+            As metas devem ficar travadas até o usuário ter KPIs e Tasks geradas.
+          </p>
+          <div className="flex flex-col items-start gap-2 mb-8 text-text-sec">
+            <div className="flex items-center gap-2">
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${kpis.length > 0 ? 'bg-success/20 border-success text-success' : 'border-border-subtle bg-bg-sec'}`}>
+                {kpis.length > 0 && <span className="text-xs">✓</span>}
+              </div>
+              <span>Pelo menos 1 KPI criada ({kpis.length})</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${tasks.length > 0 ? 'bg-success/20 border-success text-success' : 'border-border-subtle bg-bg-sec'}`}>
+                {tasks.length > 0 && <span className="text-xs">✓</span>}
+              </div>
+              <span>Pelo menos 1 Task criada ({tasks.length})</span>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <button onClick={() => navigate('/kpis')} className="btn-secondary flex items-center gap-2">
+              <Plus size={18} /> Criar KPI
+            </button>
+            <button onClick={() => navigate('/tasks')} className="btn-secondary flex items-center gap-2">
+              <Plus size={18} /> Criar Task
+            </button>
+          </div>
+        </div>
       ) : (
         <>
-          {tasks.length === 0 && kpis.length === 0 && !isGenerating && metas.length === 0 && (
-            <div className="glass-card flex flex-col items-center justify-center py-16 text-center border-accent-blue/30">
-              <div className="w-20 h-20 bg-accent-blue/10 rounded-full flex items-center justify-center mb-6 border border-accent-blue/30">
-                <AlertTriangle size={40} className="text-accent-blue" />
-              </div>
-              <h3 className="text-xl font-medium mb-2">Para gerar metas, você precisa ter:</h3>
-              <div className="flex flex-col items-start gap-2 mb-8 text-text-sec">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full border border-border-subtle flex items-center justify-center bg-bg-sec"></div>
-                  <span>Pelo menos 1 KPI criada</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full border border-border-subtle flex items-center justify-center bg-bg-sec"></div>
-                  <span>Pelo menos 1 Task criada</span>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <button onClick={() => navigate('/kpis')} className="btn-secondary flex items-center gap-2">
-                  <Plus size={18} /> Criar KPI
-                </button>
-                <button onClick={() => navigate('/tasks')} className="btn-secondary flex items-center gap-2">
-                  <Plus size={18} /> Criar Task
-                </button>
-              </div>
+          {metas.length === 0 && !isGenerating && (
+            <div className="bg-success/10 border border-success/20 text-success px-4 py-3 rounded-xl text-sm flex items-center gap-2 mb-6">
+              <Sparkles size={18} />
+              Pronto! Você tem {kpis.length} KPIs e {tasks.length} Tasks.
             </div>
           )}
 
@@ -377,9 +407,9 @@ export function Metas() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Semanais */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-accent-blue/30 pb-2">
-                  <h2 className="text-xl font-bold text-accent-blue flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-accent-blue"></div>
+                <div className="flex items-center justify-between border-b border-blue-500/30 pb-2">
+                  <h2 className="text-xl font-bold text-blue-500 flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                     Semanais
                   </h2>
                   <span className="text-sm text-text-sec font-medium">{semanais.length}</span>
@@ -404,9 +434,9 @@ export function Metas() {
 
               {/* Mensais */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-success/30 pb-2">
-                  <h2 className="text-xl font-bold text-success flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-success"></div>
+                <div className="flex items-center justify-between border-b border-green-500/30 pb-2">
+                  <h2 className="text-xl font-bold text-green-500 flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
                     Mensais
                   </h2>
                   <span className="text-sm text-text-sec font-medium">{mensais.length}</span>
@@ -431,9 +461,9 @@ export function Metas() {
 
               {/* Trimestrais */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-accent-purple/30 pb-2">
-                  <h2 className="text-xl font-bold text-accent-purple flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-accent-purple"></div>
+                <div className="flex items-center justify-between border-b border-purple-500/30 pb-2">
+                  <h2 className="text-xl font-bold text-purple-500 flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                     Trimestrais
                   </h2>
                   <span className="text-sm text-text-sec font-medium">{trimestrais.length}</span>

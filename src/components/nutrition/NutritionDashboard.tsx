@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NutritionPlan, NutritionProfile, MealItem, Task } from '../../types';
 import { Activity, Flame, Utensils, Clock, ChevronRight, Plus, Check } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -10,6 +10,7 @@ interface NutritionDashboardProps {
   plan: NutritionPlan;
   profile: NutritionProfile;
   onRegenerate: () => void;
+  onSelectOption?: (id: string) => void;
 }
 
 function StatCard({ label, value, unit, icon: Icon, color }: any) {
@@ -112,7 +113,38 @@ const MealCard: React.FC<{ meal: MealItem }> = ({ meal }) => {
   );
 }
 
-export function NutritionDashboard({ plan, profile, onRegenerate }: NutritionDashboardProps) {
+export function NutritionDashboard({ plan, profile, onRegenerate, onSelectOption }: NutritionDashboardProps) {
+  const { adicionarTask, dailyMeals, saveDailyMeals, chooseMealOption } = useApp();
+  const [taskAdded, setTaskAdded] = useState<string | null>(null);
+
+  // Initialize dailyMeals if not present or different date
+  useEffect(() => {
+    const hoje = getDataStringBrasil();
+    if (plan.opcoes && (!dailyMeals || dailyMeals.data !== hoje)) {
+      saveDailyMeals({
+        data: hoje,
+        opcoesGeradas: plan.opcoes,
+        opcaoEscolhidaId: plan.opcaoEscolhidaId
+      });
+    }
+  }, [plan.opcoes, dailyMeals, saveDailyMeals, plan.opcaoEscolhidaId]);
+
+  const handleRandomize = () => {
+    if (plan.opcoes && plan.opcoes.length > 0) {
+      const randomIndex = Math.floor(Math.random() * plan.opcoes.length);
+      const chosenId = plan.opcoes[randomIndex].id;
+      if (onSelectOption) onSelectOption(chosenId);
+      chooseMealOption(chosenId);
+    }
+  };
+
+  const handleSelectOption = (id: string) => {
+    if (onSelectOption) onSelectOption(id);
+    chooseMealOption(id);
+  };
+
+  const currentChosenId = dailyMeals?.data === getDataStringBrasil() ? dailyMeals.opcaoEscolhidaId : plan.opcaoEscolhidaId;
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Stats Grid */}
@@ -166,20 +198,119 @@ export function NutritionDashboard({ plan, profile, onRegenerate }: NutritionDas
         </div>
       </div>
 
-      {/* Meal Plan */}
+      {/* Meal Plan Options */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-white">Seu Plano Alimentar</h3>
-          <button 
-            onClick={onRegenerate}
-            className="text-sm text-accent-blue hover:text-accent-blue/80 transition-colors flex items-center gap-1"
-          >
-            Recalcular Plano <ChevronRight size={14} />
-          </button>
+          <h3 className="text-xl font-semibold text-white">Opções de Cardápio</h3>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={handleRandomize}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <Activity size={16} /> Randomizar
+            </button>
+            <button 
+              onClick={onRegenerate}
+              className="text-sm text-accent-blue hover:text-accent-blue/80 transition-colors flex items-center gap-1"
+            >
+              Recalcular Plano <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {plan.refeicoes.map((meal, index) => (
-            <MealCard key={index} meal={meal} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {plan.opcoes?.map((opcao) => (
+            <div 
+              key={opcao.id} 
+              className={clsx(
+                "glass-card p-6 flex flex-col h-full border-2 transition-all duration-300",
+                currentChosenId === opcao.id 
+                  ? "border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
+                  : "border-transparent hover:border-border-subtle"
+              )}
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h4 className="text-lg font-bold text-white mb-1">{opcao.nome}</h4>
+                  <div className="flex items-center gap-3 text-xs text-text-sec">
+                    <span className="flex items-center gap-1"><Flame size={12} className="text-orange-500" /> {opcao.caloriasTotais} kcal</span>
+                    <span>P: {opcao.macrosTotais.proteina}g</span>
+                    <span>C: {opcao.macrosTotais.carboidratos}g</span>
+                    <span>G: {opcao.macrosTotais.gorduras}g</span>
+                  </div>
+                </div>
+                {currentChosenId === opcao.id && (
+                  <div className="bg-emerald-500/20 text-emerald-400 p-1.5 rounded-full">
+                    <Check size={16} />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 flex-1">
+                {opcao.refeicoes.map((meal, index) => (
+                  <div key={index} className="bg-bg-sec/50 p-4 rounded-xl border border-border-subtle">
+                    <div className="flex justify-between items-start mb-2">
+                      <h5 className="font-semibold text-white text-sm">{meal.nome}</h5>
+                      <span className="text-xs font-medium text-accent-blue">{meal.calorias} kcal</span>
+                    </div>
+                    <p className="text-xs text-white mb-1">{meal.prato}</p>
+                    <p className="text-[10px] text-text-sec mb-2">{meal.ingredientes.join(', ')}</p>
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-border-subtle/50">
+                      <span className="text-[10px] text-warning italic flex items-center gap-1">
+                        <Activity size={10} /> Pare aos 80%
+                      </span>
+                      <button 
+                        onClick={() => {
+                          const newTask: Task = {
+                            id: uuidv4(),
+                            titulo: `Preparar ${meal.nome}`,
+                            descricao: `Prato: ${meal.prato}\nIngredientes: ${meal.ingredientes.join(', ')}`,
+                            duracao: 30,
+                            categoria: 'saude',
+                            prioridade: 'media',
+                            status: 'nao_iniciada',
+                            data: getDataStringBrasil(),
+                            horario: meal.horario,
+                            tipoRepeticao: 'nenhuma',
+                            vezAtual: 1,
+                            xpGanho: false,
+                            pomodorosFeitos: 0,
+                          };
+                          adicionarTask(newTask);
+                          setTaskAdded(`${opcao.id}-${index}`);
+                          setTimeout(() => setTaskAdded(null), 3000);
+                        }}
+                        disabled={taskAdded === `${opcao.id}-${index}`}
+                        className={clsx(
+                          "text-[10px] transition-colors flex items-center gap-1",
+                          taskAdded === `${opcao.id}-${index}` 
+                            ? "text-emerald-400" 
+                            : "text-accent-blue hover:text-white"
+                        )}
+                      >
+                        {taskAdded === `${opcao.id}-${index}` ? (
+                          <><Check size={10} /> Adicionada</>
+                        ) : (
+                          <><Plus size={10} /> Tarefa</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => handleSelectOption(opcao.id)}
+                className={clsx(
+                  "w-full mt-6 py-3 rounded-xl font-medium transition-all duration-300",
+                  currentChosenId === opcao.id
+                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                    : "bg-bg-sec hover:bg-accent-blue/20 text-white border border-border-subtle hover:border-accent-blue/50"
+                )}
+              >
+                {currentChosenId === opcao.id ? 'Opção Selecionada' : 'Selecionar Opção'}
+              </button>
+            </div>
           ))}
         </div>
       </div>
