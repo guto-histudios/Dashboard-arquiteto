@@ -131,7 +131,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           prioridade: 'media',
           duracao: duracao,
           tipoRepeticao: 'nenhuma',
-          horario: hf.horaInicio,
+          horarioInicio: hf.horaInicio,
+          horarioFim: hf.horaFim,
           horarioFixo: true,
           horarioFixoId: hf.id,
           vezAtual: 1,
@@ -228,7 +229,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (carregando) return;
     const hoje = getDataStringBrasil();
-    const diaSemana = new Date(hoje).getDay();
+    const [ano, mes, dia] = hoje.split('-').map(Number);
+    const dataObj = new Date(ano, mes - 1, dia);
+    const diaSemana = dataObj.getDay();
     const habitosHoje = habitosHook.habitos.filter(h => h.diasSemana.includes(diaSemana));
     
     if (habitosHoje.length > 0) {
@@ -259,7 +262,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       // Zen: manteve streak de hábitos no final de semana
       const hoje = getDataStringBrasil();
-      const diaSemana = new Date(hoje).getDay();
+      const [ano, mes, dia] = hoje.split('-').map(Number);
+      const dataObj = new Date(ano, mes - 1, dia);
+      const diaSemana = dataObj.getDay();
       if ((diaSemana === 0 || diaSemana === 6) && h.streak > 0) {
         const completedToday = h.conclusoes.some(c => c.data === hoje && c.concluido);
         if (completedToday) {

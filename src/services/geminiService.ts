@@ -89,7 +89,8 @@ export async function generateRoutineSuggestion(userProfile: any, answers: any) 
     - diasSemana: array com os dias (0=Dom, 1=Seg, ..., 6=Sáb)
     - dataInicio: data de início no formato YYYY-MM-DD
     - dataFim: data de fim no formato YYYY-MM-DD
-    - horario: horário de início (HH:mm)
+    - horarioInicio: horário de início (HH:mm)
+    - horarioFim: horário de fim (HH:mm)
     - duracao: duração em minutos
     
     Retorne APENAS um objeto JSON com a seguinte estrutura:
@@ -99,7 +100,8 @@ export async function generateRoutineSuggestion(userProfile: any, answers: any) 
           "titulo": "string",
           "descricao": "string",
           "duracao": number (em minutos),
-          "horario": "HH:mm" (opcional),
+          "horarioInicio": "HH:mm" (opcional),
+          "horarioFim": "HH:mm" (opcional),
           "categoria": "trabalho" | "pessoal" | "saude" | "estudos",
           "prioridade": "alta" | "media" | "baixa",
           "tipoRepeticao": "nenhuma" | "diaria" | "diasSemana" | "semanal" | "quinzenal" | "mensal",

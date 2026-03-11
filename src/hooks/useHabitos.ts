@@ -138,7 +138,9 @@ export function useHabitos() {
 
   const calcularProgressoHabitos = (data: string): number => {
     const habitosDoDia = habitos.filter(h => {
-      const diaSemana = new Date(data).getDay();
+      const [ano, mes, dia] = data.split('-').map(Number);
+      const dataObj = new Date(ano, mes - 1, dia);
+      const diaSemana = dataObj.getDay();
       return h.diasSemana.includes(diaSemana);
     });
     

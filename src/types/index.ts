@@ -18,7 +18,8 @@ export interface Task {
   tipoRepeticao: TipoRepeticao;
   justificativaFrequencia?: string;
   dataLimite?: string; // YYYY-MM-DD
-  horario?: string; // HH:mm
+  horarioInicio?: string; // HH:mm
+  horarioFim?: string; // HH:mm
   diasSemana?: number[]; // [0,1,2,3,4,5,6]
   vezAtual: number;
   vezesConcluida?: number;

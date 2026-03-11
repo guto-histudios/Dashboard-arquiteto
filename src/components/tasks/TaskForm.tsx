@@ -17,7 +17,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
   const [titulo, setTitulo] = useState(initialTask?.titulo || '');
   const [descricao, setDescricao] = useState(initialTask?.descricao || '');
   const [duracao, setDuracao] = useState(initialTask?.duracao || 30);
-  const [horario, setHorario] = useState(initialTask?.horario || '');
+  const [horario, setHorario] = useState(initialTask?.horarioInicio || '');
   const [categoria, setCategoria] = useState<TaskCategoria>(initialTask?.categoria || 'trabalho');
   const [prioridade, setPrioridade] = useState<TaskPrioridade>(initialTask?.prioridade || 'media');
   const [data, setData] = useState(initialTask?.data || getDataStringBrasil());
@@ -38,7 +38,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       setTitulo(initialTask?.titulo || '');
       setDescricao(initialTask?.descricao || '');
       setDuracao(initialTask?.duracao || 30);
-      setHorario(initialTask?.horario || '');
+      setHorario(initialTask?.horarioInicio || '');
       setCategoria(initialTask?.categoria || 'trabalho');
       setPrioridade(initialTask?.prioridade || 'media');
       setData(initialTask?.data || getDataStringBrasil());
@@ -106,16 +106,16 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
     // Check overlap with other tasks on the same date
     const sameDateTasks = tasks.filter(t => t.data === data && t.id !== initialTask?.id && t.status !== 'cancelada' && t.status !== 'concluida');
     for (const t of sameDateTasks) {
-      if (!t.horario) continue;
-      const tStart = parseInt(t.horario.replace(':', ''));
-      const [th, tm] = t.horario.split(':').map(Number);
+      if (!t.horarioInicio) continue;
+      const tStart = parseInt(t.horarioInicio.replace(':', ''));
+      const [th, tm] = t.horarioInicio.split(':').map(Number);
       const tEndDate = new Date();
       tEndDate.setHours(th, tm + t.duracao, 0, 0);
       const tEndStr = `${String(tEndDate.getHours()).padStart(2, '0')}${String(tEndDate.getMinutes()).padStart(2, '0')}`;
       const tEnd = parseInt(tEndStr);
 
       if (taskStart < tEnd && taskEnd > tStart) {
-        return `Atenção: Este horário sobrepõe com a tarefa: ${t.titulo} (${t.horario} - ${tEndStr.slice(0,2)}:${tEndStr.slice(2)})`;
+        return `Atenção: Este horário sobrepõe com a tarefa: ${t.titulo} (${t.horarioInicio} - ${tEndStr.slice(0,2)}:${tEndStr.slice(2)})`;
       }
     }
 
@@ -169,7 +169,8 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       titulo,
       descricao,
       duracao,
-      horario: horario ? horario : undefined,
+      horarioInicio: horario ? horario : undefined,
+      horarioFim: horarioFim ? horarioFim : undefined,
       horarioFixo,
       horarioFixoId: horarioFixo && finalHorarioFixoId ? finalHorarioFixoId : undefined,
       deadline: temDeadline && deadline ? deadline : undefined,

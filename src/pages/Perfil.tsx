@@ -26,12 +26,14 @@ export function Perfil() {
   const daysUsingSystem = useMemo(() => {
     let oldestDate = new Date();
     tasks.forEach(t => {
-      const d = new Date(t.data);
+      const [ano, mes, dia] = t.data.split('-').map(Number);
+      const d = new Date(ano, mes - 1, dia);
       if (d < oldestDate) oldestDate = d;
     });
     habitos.forEach(h => {
       h.conclusoes.forEach(c => {
-        const d = new Date(c.data);
+        const [ano, mes, dia] = c.data.split('-').map(Number);
+        const d = new Date(ano, mes - 1, dia);
         if (d < oldestDate) oldestDate = d;
       });
     });

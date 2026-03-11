@@ -26,34 +26,35 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
   const horarioFixoObj = task.horarioFixoId ? horariosFixos.find(h => h.id === task.horarioFixoId) : null;
 
   const horarioFim = useMemo(() => {
-    if (!task.horario) return null;
-    const [h, m] = task.horario.split(':').map(Number);
+    if (task.horarioFim) return task.horarioFim;
+    if (!task.horarioInicio) return null;
+    const [h, m] = task.horarioInicio.split(':').map(Number);
     const date = new Date();
     date.setHours(h, m + task.duracao, 0, 0);
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  }, [task.horario, task.duracao]);
+  }, [task.horarioInicio, task.horarioFim, task.duracao]);
 
   const isCurrentTime = useMemo(() => {
-    if (!task.horario || task.data !== getDataStringBrasil() || task.status === 'concluida') return false;
+    if (!task.horarioInicio || task.data !== getDataStringBrasil() || task.status === 'concluida') return false;
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     
-    const [h, m] = task.horario.split(':').map(Number);
+    const [h, m] = task.horarioInicio.split(':').map(Number);
     const startMinutes = h * 60 + m;
     const endMinutes = startMinutes + task.duracao;
     
     return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-  }, [task.horario, task.duracao, task.data, task.status]);
+  }, [task.horarioInicio, task.duracao, task.data, task.status]);
 
   const progressPercentage = useMemo(() => {
-    if (!isCurrentTime || !task.horario) return 0;
+    if (!isCurrentTime || !task.horarioInicio) return 0;
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const [h, m] = task.horario.split(':').map(Number);
+    const [h, m] = task.horarioInicio.split(':').map(Number);
     const startMinutes = h * 60 + m;
     const elapsed = currentMinutes - startMinutes;
     return Math.min(100, Math.max(0, (elapsed / task.duracao) * 100));
-  }, [isCurrentTime, task.horario, task.duracao]);
+  }, [isCurrentTime, task.horarioInicio, task.duracao]);
 
   const getStatusIcon = () => {
     switch (task.status) {
@@ -81,14 +82,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
 
   const handleStatusChange = (status: TaskStatus) => {
     if (status === 'concluida') {
-      if (task.horarioFixo && task.horario) {
+      if (task.horarioFixo && task.horarioInicio) {
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        const [h, m] = task.horario.split(':').map(Number);
+        const [h, m] = task.horarioInicio.split(':').map(Number);
         const startMinutes = h * 60 + m;
         
         if (currentMinutes < startMinutes && task.data === getDataStringBrasil()) {
-          alert(`Você não pode concluir um horário fixo antes do seu horário de início (${task.horario}).`);
+          alert(`Você não pode concluir um horário fixo antes do seu horário de início (${task.horarioInicio}).`);
           return;
         }
       }
@@ -145,7 +146,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
             isCurrentTime && !isActive && "text-emerald-400",
             task.status === 'atrasada' && "text-error"
           )}>
-            {task.horario ? (
+            {task.horarioInicio ? (
               <span className="flex items-center gap-2">
                 <span className={clsx(
                   "text-sm font-bold px-2 py-1 rounded-md border",
@@ -154,7 +155,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
                     : "bg-bg-sec border-border-subtle text-text-sec"
                 )}>
                   {task.horarioFixo && <Lock size={12} />}
-                  {task.horario} - {horarioFim}
+                  {task.horarioInicio} - {horarioFim}
                 </span>
                 <span>{task.titulo}</span>
               </span>

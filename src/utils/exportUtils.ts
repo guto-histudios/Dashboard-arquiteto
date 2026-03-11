@@ -43,11 +43,12 @@ export const generatePDFReport = (data: ExportData, period: Period) => {
 
   // Helper to check if a date string is within the period
   const isDateInPeriod = (dateStr: string) => {
-    const date = new Date(dateStr);
     // For daily, just compare the date string directly to avoid timezone issues
     if (period === 'diario') {
       return dateStr === format(today, 'yyyy-MM-dd');
     }
+    const [ano, mes, dia] = dateStr.split('-').map(Number);
+    const date = new Date(ano, mes - 1, dia);
     return isWithinInterval(date, { start: startDate, end: endDate });
   };
 
@@ -103,12 +104,15 @@ export const generatePDFReport = (data: ExportData, period: Period) => {
     autoTable(doc, {
       startY: yPos,
       head: [['Tarefa', 'Categoria', 'Data', 'Foco (min)']],
-      body: completedTasks.map(t => [
-        t.titulo, 
-        t.categoria, 
-        format(new Date(t.data), 'dd/MM/yyyy'),
-        (t.pomodorosFeitos || 0) * 25 // Assuming 25min per pomodoro for simplicity here, or we could pass config
-      ]),
+      body: completedTasks.map(t => {
+        const [ano, mes, dia] = t.data.split('-').map(Number);
+        return [
+          t.titulo, 
+          t.categoria, 
+          format(new Date(ano, mes - 1, dia), 'dd/MM/yyyy'),
+          (t.pomodorosFeitos || 0) * 25 // Assuming 25min per pomodoro for simplicity here, or we could pass config
+        ];
+      }),
       theme: 'striped',
       headStyles: { fillColor: [59, 130, 246] }, // accent-blue
       margin: { top: 10 }
@@ -160,11 +164,14 @@ export const generatePDFReport = (data: ExportData, period: Period) => {
     autoTable(doc, {
       startY: yPos,
       head: [['Meta', 'Período', 'Data Fim']],
-      body: completedMetas.map(m => [
-        m.titulo, 
-        m.periodo, 
-        format(new Date(m.dataFim), 'dd/MM/yyyy')
-      ]),
+      body: completedMetas.map(m => {
+        const [ano, mes, dia] = m.dataFim.split('-').map(Number);
+        return [
+          m.titulo, 
+          m.periodo, 
+          format(new Date(ano, mes - 1, dia), 'dd/MM/yyyy')
+        ];
+      }),
       theme: 'striped',
       headStyles: { fillColor: [139, 92, 246] }, // accent-purple
       margin: { top: 10 }

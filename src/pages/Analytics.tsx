@@ -49,7 +49,9 @@ export function Analytics() {
     const taxaTasks = tasksHoje.length > 0 ? Math.round((tasksConcluidasHoje / tasksHoje.length) * 100) : 0;
 
     // Habits %
-    const diaSemana = new Date(hoje).getDay();
+    const [ano, mes, dia] = hoje.split('-').map(Number);
+    const dataObj = new Date(ano, mes - 1, dia);
+    const diaSemana = dataObj.getDay();
     const habitosHoje = habitos.filter(h => h.diasSemana.includes(diaSemana));
     const habitosConcluidosHoje = habitosHoje.filter(h => h.conclusoes.some(c => c.data === hoje && c.concluido)).length;
     const taxaHabitos = habitosHoje.length > 0 ? Math.round((habitosConcluidosHoje / habitosHoje.length) * 100) : 0;

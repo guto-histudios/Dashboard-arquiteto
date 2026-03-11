@@ -95,7 +95,9 @@ export function useGamification() {
     if (salvos.recompensasCompradas === undefined) salvos.recompensasCompradas = [];
 
     if (salvos.ultimoAcesso !== hoje) {
-      const diff = differenceInDays(new Date(hoje), new Date(salvos.ultimoAcesso));
+      const [anoHoje, mesHoje, diaHoje] = hoje.split('-').map(Number);
+      const [anoUltimo, mesUltimo, diaUltimo] = salvos.ultimoAcesso.split('-').map(Number);
+      const diff = differenceInDays(new Date(anoHoje, mesHoje - 1, diaHoje), new Date(anoUltimo, mesUltimo - 1, diaUltimo));
       if (diff === 1) {
         // Dia consecutivo
         salvos.streakDias += 1;

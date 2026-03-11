@@ -75,7 +75,8 @@ export function Configuracoes() {
             duracao = diff;
           }
           atualizarTask(task.id, {
-            horario: newHorario.horaInicio,
+            horarioInicio: newHorario.horaInicio,
+            horarioFim: newHorario.horaFim,
             duracao: duracao,
             titulo: newHorario.descricao
           });
@@ -106,16 +107,31 @@ export function Configuracoes() {
   };
 
   const handleFullReset = () => {
-    localStorage.removeItem('tasks');
-    localStorage.removeItem('habitos');
-    localStorage.removeItem('metas');
-    localStorage.removeItem('kpis');
-    localStorage.removeItem('healthData');
-    localStorage.removeItem('workoutPlan');
-    localStorage.removeItem('configuracoes');
-    localStorage.removeItem('horariosFixos');
-    localStorage.removeItem('userProfile');
-    localStorage.removeItem('ultimoAcesso');
+    const keysToKeep = [
+      'configuracoes',
+      'horariosFixos',
+      'healthData',
+      'workoutPlan',
+      'nutrition_profile',
+      'nutrition_plan',
+      'daily_meals'
+    ];
+
+    // Get all keys currently in localStorage
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && !keysToKeep.includes(key)) {
+        keysToRemove.push(key);
+      }
+    }
+
+    // Remove all keys except the ones to keep
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Also explicitly remove keys requested by user just in case
+    const explicitRemove = ['xp', 'nivel', 'moedas', 'streak', 'badges', 'historico', 'dadosUsuario'];
+    explicitRemove.forEach(key => localStorage.removeItem(key));
     
     window.location.href = '/';
   };
@@ -460,9 +476,9 @@ export function Configuracoes() {
               <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={32} className="text-error" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Tem certeza que deseja resetar?</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">Tem certeza que deseja resetar TUDO?</h2>
               <p className="text-text-sec mb-6">
-                Isso irá apagar <strong className="text-error">TODOS</strong> os dados: tasks, hábitos, metas, KPIs, planos de treino e configurações. Esta ação não pode ser desfeita.
+                Isso irá apagar: tasks, hábitos, metas, KPIs, XP, nível, moedas, badges. Esta ação não pode ser desfeita.
               </p>
               
               <div className="flex gap-3">

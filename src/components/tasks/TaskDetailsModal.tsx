@@ -105,7 +105,7 @@ export function TaskDetailsModal({ task, isOpen, onClose, onEdit, onDelete, onSt
                 <span className="text-xs font-medium uppercase tracking-wider">Horário / Duração</span>
               </div>
               <div className="font-medium">
-                {task.horario ? `${task.horario} (${task.duracao}m)` : `${task.duracao} min`}
+                {task.horarioInicio ? `${task.horarioInicio} (${task.duracao}m)` : `${task.duracao} min`}
               </div>
             </div>
 

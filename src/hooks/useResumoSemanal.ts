@@ -160,7 +160,11 @@ export function useResumoSemanal() {
       return;
     }
     
-    newSummaries = newSummaries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()).slice(0, 4);
+    newSummaries = newSummaries.sort((a, b) => {
+      const [anoA, mesA, diaA] = a.startDate.split('-').map(Number);
+      const [anoB, mesB, diaB] = b.startDate.split('-').map(Number);
+      return new Date(anoB, mesB - 1, diaB).getTime() - new Date(anoA, mesA - 1, diaA).getTime();
+    }).slice(0, 4);
     saveSummaries(newSummaries);
   };
 
@@ -172,7 +176,11 @@ export function useResumoSemanal() {
     } else {
       newSummaries = [...summaries, summary];
     }
-    newSummaries = newSummaries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()).slice(0, 4);
+    newSummaries = newSummaries.sort((a, b) => {
+      const [anoA, mesA, diaA] = a.startDate.split('-').map(Number);
+      const [anoB, mesB, diaB] = b.startDate.split('-').map(Number);
+      return new Date(anoB, mesB - 1, diaB).getTime() - new Date(anoA, mesA - 1, diaA).getTime();
+    }).slice(0, 4);
     saveSummaries(newSummaries);
   };
 

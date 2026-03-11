@@ -47,9 +47,9 @@ export function Tasks() {
       return dateB.localeCompare(dateA);
     }
     
-    if (a.horario && b.horario) return a.horario.localeCompare(b.horario);
-    if (a.horario) return -1;
-    if (b.horario) return 1;
+    if (a.horarioInicio && b.horarioInicio) return a.horarioInicio.localeCompare(b.horarioInicio);
+    if (a.horarioInicio) return -1;
+    if (b.horarioInicio) return 1;
     return a.duracao - b.duracao;
   });
 
