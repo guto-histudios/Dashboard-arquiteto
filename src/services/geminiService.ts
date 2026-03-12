@@ -315,6 +315,54 @@ export async function generateDarebeePlan(healthData: HealthData): Promise<Worko
   }
 }
 
+export async function generateHabitos(userProfile: any, habitosAtuais: any[]): Promise<any[]> {
+  const prompt = `
+    Atue como um especialista em produtividade e formação de hábitos.
+    O usuário precisa de sugestões de novos hábitos para melhorar sua rotina.
+
+    Dados do usuário:
+    - Objetivos: ${userProfile?.objetivos || 'Não informado'}
+    - Rotina Atual: ${userProfile?.rotina || 'Não informado'}
+    - Horários Disponíveis: ${userProfile?.horariosDisponiveis || 'Não informado'}
+    - Hábitos que já possui: ${habitosAtuais.map(h => h.nome).join(', ') || 'Nenhum'}
+
+    Gere 3 a 5 sugestões de hábitos personalizados que ajudarão o usuário a alcançar seus objetivos.
+    NÃO sugira hábitos que o usuário já possui.
+
+    Retorne APENAS um array JSON com a seguinte estrutura:
+    [
+      {
+        "nome": "string (ex: Meditar 10 min)",
+        "frequencia": "diaria" | "dias_especificos",
+        "diasSemana": [0, 1, 2, 3, 4, 5, 6] (opcional, apenas se frequencia for dias_especificos),
+        "horario": "string (ex: Manhã, Tarde, Noite, ou um horário específico HH:mm)",
+        "duracaoEstimada": number (em minutos),
+        "categoria": "saude" | "estudo" | "trabalho" | "pessoal",
+        "beneficio": "string (Por que este hábito ajuda o usuário?)"
+      }
+    ]
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    const habitos = JSON.parse(response.text || '[]');
+    return habitos.map((h: any) => ({
+      ...h,
+      id: uuidv4()
+    }));
+  } catch (error) {
+    console.error("Erro ao gerar hábitos:", error);
+    throw error;
+  }
+}
+
 export async function generateMetas(userProfile: any, tasks: Task[] = [], kpis: KPI[] = []): Promise<Meta[]> {
   const tasksList = tasks.map(t => `- ID: ${t.id} | Título: ${t.titulo}`).join('\n');
   const kpisList = kpis.map(k => `- ID: ${k.id} | Título: ${k.titulo}`).join('\n');

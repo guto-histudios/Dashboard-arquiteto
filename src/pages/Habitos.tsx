@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { HabitoCard } from '../components/habitos/HabitoCard';
 import { HabitoForm } from '../components/habitos/HabitoForm';
-import { Plus, Calendar } from 'lucide-react';
+import { AIHabitGenerator } from '../components/habitos/AIHabitGenerator';
+import { Plus, Calendar, Sparkles } from 'lucide-react';
 
 export function Habitos() {
   const { habitos, adicionarHabito, toggleConclusaoHabito } = useApp();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAIGeneratorOpen, setIsAIGeneratorOpen] = useState(false);
 
   return (
     <div className="space-y-8 pb-20">
@@ -17,13 +19,22 @@ export function Habitos() {
           </div>
           <h1 className="text-4xl font-bold tracking-tight">Meus Hábitos</h1>
         </div>
-        <button 
-          onClick={() => setIsFormOpen(true)}
-          className="bg-gradient-to-r from-success to-emerald-600 text-white font-medium px-6 py-2.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success/25 active:scale-95 flex items-center gap-2"
-        >
-          <Plus size={20} />
-          Novo Hábito
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsAIGeneratorOpen(true)}
+            className="bg-gradient-to-r from-accent-purple to-indigo-600 text-white font-medium px-6 py-2.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent-purple/25 active:scale-95 flex items-center gap-2"
+          >
+            <Sparkles size={20} />
+            Gerar com IA
+          </button>
+          <button 
+            onClick={() => setIsFormOpen(true)}
+            className="bg-gradient-to-r from-success to-emerald-600 text-white font-medium px-6 py-2.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success/25 active:scale-95 flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Novo Hábito
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -47,6 +58,13 @@ export function Habitos() {
           isOpen={isFormOpen} 
           onClose={() => setIsFormOpen(false)} 
           onSave={adicionarHabito} 
+        />
+      )}
+
+      {isAIGeneratorOpen && (
+        <AIHabitGenerator
+          isOpen={isAIGeneratorOpen}
+          onClose={() => setIsAIGeneratorOpen(false)}
         />
       )}
     </div>
