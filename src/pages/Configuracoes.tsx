@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Save, Trash2, Plus, Settings, Clock, AlertTriangle, RefreshCw, Palette, Edit2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { useNavigate } from 'react-router-dom';
 import { HorarioFixo, TipoHorarioFixo } from '../types';
 import { getDataStringBrasil } from '../utils/dataUtils';
 import { THEMES } from '../utils/themeUtils';
 
 export function Configuracoes() {
+  const navigate = useNavigate();
   const { 
     userProfile, setUserProfile, 
     horariosFixos, adicionarHorarioFixo, removerHorarioFixo, atualizarHorarioFixo,
     config, atualizarConfig,
     tasks, setTasks, atualizarTask,
-    habitos, setHabitos
+    habitos, setHabitos,
+    setMetas, setKPIs,
+    resetGamification
   } = useApp();
   
   const [profile, setProfile] = useState(userProfile || {
@@ -107,33 +111,24 @@ export function Configuracoes() {
   };
 
   const handleFullReset = () => {
-    const keysToKeep = [
-      'configuracoes',
-      'horariosFixos',
-      'healthData',
-      'workoutPlan',
-      'nutrition_profile',
-      'nutrition_plan',
-      'daily_meals'
-    ];
-
-    // Get all keys currently in localStorage
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && !keysToKeep.includes(key)) {
-        keysToRemove.push(key);
-      }
-    }
-
-    // Remove all keys except the ones to keep
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    // 1. Limpar localStorage completamente
+    localStorage.clear();
     
-    // Also explicitly remove keys requested by user just in case
-    const explicitRemove = ['xp', 'nivel', 'moedas', 'streak', 'badges', 'historico', 'dadosUsuario'];
-    explicitRemove.forEach(key => localStorage.removeItem(key));
+    // 2. Resetar states
+    setTasks([]);
+    setHabitos([]);
+    setMetas([]);
+    setKPIs([]);
+    setUserProfile(null);
+    resetGamification();
     
-    window.location.href = '/';
+    // Limpar dados temporários de onboarding se houver
+    localStorage.removeItem('onboarding_temp_data');
+    localStorage.removeItem('onboarding_temp_step');
+    
+    // 3. Redirecionar para o início e forçar recarregamento para limpar estados residuais
+    navigate('/');
+    window.location.reload();
   };
 
   const handleQuickReset = () => {
@@ -460,7 +455,7 @@ export function Configuracoes() {
                   className="bg-error text-white hover:bg-error/80 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-colors shadow-lg shadow-error/20"
                 >
                   <Trash2 size={16} />
-                  Limpar Dados
+                  Resetar Sistema
                 </button>
               </div>
             </div>
@@ -476,9 +471,9 @@ export function Configuracoes() {
               <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle size={32} className="text-error" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Tem certeza que deseja resetar TUDO?</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">Isso vai apagar TUDO. Continuar?</h2>
               <p className="text-text-sec mb-6">
-                Isso irá apagar: tasks, hábitos, metas, KPIs, XP, nível, moedas, badges. Esta ação não pode ser desfeita.
+                Esta ação irá apagar permanentemente suas tasks, hábitos, metas, KPIs, XP, nível, moedas e badges. Você voltará para a tela inicial.
               </p>
               
               <div className="flex gap-3">
@@ -492,7 +487,7 @@ export function Configuracoes() {
                   onClick={handleFullReset}
                   className="flex-1 bg-error text-white hover:bg-error/90 px-4 py-3 rounded-xl font-medium transition-colors shadow-lg shadow-error/20"
                 >
-                  Confirmar Reset
+                  Confirmar
                 </button>
               </div>
             </div>

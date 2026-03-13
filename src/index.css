@@ -1,85 +1,74 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --theme-primary: #8b5cf6;
-  --theme-secondary: #3b82f6;
+  --color-bg-main: #0a0a0a;
+  --color-bg-card: #1a1a1a;
+  --color-bg-card-hover: #2a2a2a;
+  --color-primary: #6366f1;
+  --color-secondary: #8b5cf6;
+  --color-accent: #06b6d4;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-text-main: #f8fafc;
+  --color-text-sec: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.1);
 }
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   
-  --color-bg-main: #000000;
-  --color-bg-sec: #111827; /* gray-900 */
-  --color-bg-card: rgba(17, 24, 39, 0.8); /* gray-900/80 */
-  --color-border-subtle: rgba(255, 255, 255, 0.1); /* white/10 */
-  
-  --color-text-main: #f3f4f6; /* gray-100 */
-  --color-text-sec: #9ca3af; /* gray-400 */
-  
-  --color-accent-blue: var(--theme-secondary);
-  --color-accent-purple: var(--theme-primary);
-  
-  --color-success: #22c55e; /* green-500 */
-  --color-error: #ef4444; /* red-500 */
-  --color-warning: #f59e0b;
+  --color-bg-main: var(--color-bg-main);
+  --color-bg-card: var(--color-bg-card);
+  --color-bg-card-hover: var(--color-bg-card-hover);
+  --color-accent-primary: var(--color-primary);
+  --color-accent-secondary: var(--color-secondary);
+  --color-accent-cyan: var(--color-accent);
+  --color-text-main: var(--color-text-main);
+  --color-text-sec: var(--color-text-sec);
+  --color-border-subtle: var(--color-border);
+  --color-success: var(--color-success);
+  --color-error: var(--color-error);
+  --color-warning: var(--color-warning);
 }
 
 @layer base {
   body {
-    @apply bg-gradient-to-b from-gray-900 to-black min-h-screen text-gray-300 font-sans antialiased selection:bg-accent-purple/30;
-    background-attachment: fixed;
+    @apply bg-bg-main text-text-main font-sans antialiased selection:bg-accent-primary/30;
   }
   
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-white tracking-wide;
-  }
-  
-  h1 {
-    @apply font-bold text-3xl md:text-4xl;
-  }
-  
-  h2 {
-    @apply font-bold text-2xl md:text-3xl;
-  }
-  
-  h3 {
-    @apply font-semibold text-xl;
-  }
+  h1 { @apply text-[2.5rem] font-bold tracking-tight text-text-main; }
+  h2 { @apply text-[1.75rem] font-bold tracking-tight text-text-main; }
+  h3 { @apply text-[1.25rem] font-bold tracking-tight text-text-main; }
+  body { @apply text-[1rem] leading-relaxed text-text-main; }
+  small { @apply text-[0.875rem] text-text-sec; }
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-bg-card backdrop-blur-md border border-border-subtle rounded-2xl shadow-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-accent-purple/10;
+  .card {
+    @apply bg-bg-card border border-border-subtle rounded-2xl p-6 transition-all duration-200 hover:scale-[1.02] hover:bg-bg-card-hover hover:border-accent-primary/50 hover:shadow-xl hover:shadow-accent-primary/10;
   }
   
   .btn-primary {
-    @apply bg-gradient-to-r from-accent-purple to-accent-blue text-white font-medium px-6 py-2.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent-purple/25 active:scale-95;
+    @apply bg-gradient-to-r from-accent-primary to-accent-secondary text-white font-medium px-6 py-3 rounded-full transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:shadow-accent-primary/20 active:scale-95;
   }
   
   .btn-secondary {
-    @apply bg-bg-sec border border-border-subtle text-text-main font-medium px-6 py-2.5 rounded-xl transition-all duration-300 hover:bg-border-subtle active:scale-95;
+    @apply bg-bg-card border border-border-subtle text-text-main font-medium px-6 py-3 rounded-xl transition-all duration-200 hover:bg-bg-card-hover active:scale-95;
   }
 
   .input-modern {
-    @apply w-full bg-bg-sec/50 border border-border-subtle rounded-xl px-4 py-3 text-text-main placeholder-text-sec transition-all duration-300 focus:outline-none focus:border-accent-purple focus:ring-1 focus:ring-accent-purple focus:shadow-lg focus:shadow-accent-purple/20;
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+    @apply w-full bg-bg-main border border-border-subtle rounded-xl px-4 py-3 text-text-main placeholder-text-sec transition-all duration-200 focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:shadow-lg focus:shadow-accent-primary/20;
   }
   
-  .animate-slide-up {
-    animation: slideUp 0.5s ease-out forwards;
+  .modal-glass {
+    @apply bg-bg-card/80 backdrop-blur-xl border border-border-subtle rounded-3xl shadow-2xl;
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+.animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

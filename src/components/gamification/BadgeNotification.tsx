@@ -26,7 +26,12 @@ export function BadgeNotification() {
   );
 }
 
-function BadgeToast({ badge, onClose }: { badge: any, onClose: () => void }) {
+interface BadgeToastProps {
+  badge: any;
+  onClose: () => void;
+}
+
+const BadgeToast: React.FC<BadgeToastProps> = ({ badge, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();

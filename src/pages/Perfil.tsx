@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { BADGES_INFO } from '../hooks/useGamification';
 import { format, subDays, eachDayOfInterval, differenceInDays } from 'date-fns';
@@ -8,6 +8,11 @@ import { Trophy, Star, Target, CheckCircle, Calendar, Clock, Activity, Flame, Za
 
 export function Perfil() {
   const { userProfile, gamification, getLevelInfo, tasks, habitos, metas } = useApp();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const levelInfo = getLevelInfo(gamification.totalXP);
   const userName = userProfile?.nome || 'Arquiteto';
@@ -196,30 +201,32 @@ export function Perfil() {
             Evolução de XP (Últimos 14 dias)
           </h2>
           
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={xpHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--theme-primary)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--theme-primary)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
-                <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="xp" 
-                  stroke="var(--theme-primary)" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorXp)" 
-                  activeDot={{ r: 6, fill: 'var(--theme-primary)', stroke: '#fff', strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="h-64 w-full min-h-[256px]">
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={xpHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--theme-primary)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--theme-primary)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="xp" 
+                    stroke="var(--theme-primary)" 
+                    strokeWidth={3}
+                    fillOpacity={1} 
+                    fill="url(#colorXp)" 
+                    activeDot={{ r: 6, fill: 'var(--theme-primary)', stroke: '#fff', strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 

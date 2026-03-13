@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { MetaCard } from '../components/metas/MetaCard';
 import { MetaForm } from '../components/metas/MetaForm';
+import { ConfirmModal } from '../components/common/ConfirmModal';
+import { PlanoTrimestralWidget } from '../components/dashboard/PlanoTrimestralWidget';
 import { Plus, Target, Sparkles, Archive, History, AlertTriangle } from 'lucide-react';
 import { generateMetas, generateHarderMeta } from '../services/geminiService';
 import { Meta, Task, KPI } from '../types';
@@ -15,6 +17,7 @@ export function Metas() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [metaToEdit, setMetaToEdit] = useState<Meta | null>(null);
+  const [metaToDelete, setMetaToDelete] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
   const activeMetas = metas.filter(m => !m.arquivada);
@@ -124,9 +127,7 @@ export function Metas() {
   };
 
   const handleDeleteMeta = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta meta?')) {
-      removerMeta(id);
-    }
+    setMetaToDelete(id);
   };
 
   const handleEditMeta = (meta: Meta) => {
@@ -275,6 +276,9 @@ export function Metas() {
           )}
         </div>
       </div>
+
+      {/* Plano Trimestral */}
+      {!showArchived && <PlanoTrimestralWidget />}
 
       {showArchived ? (
         <div className="space-y-8">
@@ -498,6 +502,21 @@ export function Metas() {
           metaToEdit={metaToEdit}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!metaToDelete}
+        title="Excluir Meta"
+        message="Tem certeza que deseja excluir esta meta? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          if (metaToDelete) {
+            removerMeta(metaToDelete);
+            setMetaToDelete(null);
+          }
+        }}
+        onCancel={() => setMetaToDelete(null)}
+      />
     </div>
   );
 }

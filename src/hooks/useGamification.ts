@@ -252,7 +252,12 @@ export function useGamification() {
   const unlockBadge = (badgeId: string) => {
     setGamification(prev => {
       if (!prev.badges.includes(badgeId)) {
-        setRecentBadges(current => [...current, badgeId]);
+        setRecentBadges(current => {
+          if (!current.includes(badgeId)) {
+            return [...current, badgeId];
+          }
+          return current;
+        });
         return {
           ...prev,
           badges: [...prev.badges, badgeId]
@@ -264,6 +269,23 @@ export function useGamification() {
 
   const clearRecentBadge = (badgeId: string) => {
     setRecentBadges(current => current.filter(id => id !== badgeId));
+  };
+
+  const resetGamification = () => {
+    const initialState: GamificationState = {
+      totalXP: 0,
+      xpDiario: 0,
+      badges: [],
+      streakDias: 0,
+      ultimoAcesso: getDataStringBrasil(),
+      moedas: 0,
+      historicoMoedas: [],
+      moedasAcumuladasAno: 0,
+      recompensasCompradas: []
+    };
+    setGamification(initialState);
+    setRecentBadges([]);
+    setStorageItem('gamification', initialState);
   };
 
   // Helper to calculate level based on total XP
@@ -301,6 +323,7 @@ export function useGamification() {
     getLevelInfo,
     carregando,
     recentBadges,
-    clearRecentBadge
+    clearRecentBadge,
+    resetGamification
   };
 }

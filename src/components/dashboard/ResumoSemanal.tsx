@@ -9,6 +9,11 @@ export function ResumoSemanal() {
   const { summaries, generateSummary, saveReflection, addSummary } = useResumoSemanal();
   const [weekOffset, setWeekOffset] = useState(0); 
   const [isEditing, setIsEditing] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const targetDate = useMemo(() => {
     const d = new Date();
@@ -236,20 +241,22 @@ export function ResumoSemanal() {
                 </div>
               )}
             </div>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
-                  <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    cursor={{ fill: '#27272a' }}
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '8px' }}
-                  />
-                  <Bar dataKey="Tarefas" fill="var(--theme-primary)" radius={[4, 4, 0, 0]} barSize={30} />
-                  <Bar dataKey="Hábitos" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-48 min-h-[192px]">
+              {mounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                    <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa', fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <Tooltip 
+                      cursor={{ fill: '#27272a' }}
+                      contentStyle={{ backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '8px' }}
+                    />
+                    <Bar dataKey="Tarefas" fill="var(--theme-primary)" radius={[4, 4, 0, 0]} barSize={30} />
+                    <Bar dataKey="Hábitos" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 

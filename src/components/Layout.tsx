@@ -45,7 +45,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, [setIsFocusMode]);
 
   return (
-    <div className="min-h-screen bg-bg-main text-text-main flex font-sans selection:bg-accent-blue/30">
+    <div className="min-h-screen bg-bg-main text-text-main flex font-sans selection:bg-accent-primary/30">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div 
@@ -56,15 +56,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <div className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-bg-sec border-r border-border-subtle transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-2xl lg:shadow-none flex flex-col",
+        "fixed inset-y-0 left-0 z-50 w-72 bg-bg-card border-r border-border transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-2xl lg:shadow-none flex flex-col",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="flex items-center justify-between h-20 px-6 border-b border-border-subtle bg-bg-sec shrink-0">
-          <span className="text-2xl font-bold bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent tracking-tight">O Arquiteto</span>
+        <div className="flex items-center justify-between h-20 px-6 border-b border-border bg-bg-card shrink-0">
+          <span className="text-2xl font-bold bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent tracking-tight">O Arquiteto</span>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsFocusMode(true)}
-              className="hidden lg:flex items-center justify-center p-2 text-text-sec hover:text-accent-purple hover:bg-accent-purple/10 rounded-lg transition-colors"
+              className="hidden lg:flex items-center justify-center p-2 text-text-sec hover:text-accent-primary hover:bg-accent-primary/10 rounded-lg transition-colors"
               title="Modo Foco (F)"
             >
               <Maximize size={20} />
@@ -79,21 +79,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
         
         {/* User Level Mini-Profile */}
-        <div className="px-6 py-6 border-b border-border-subtle shrink-0">
+        <div className="px-6 py-6 border-b border-border shrink-0">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full border-2 border-accent-purple flex items-center justify-center bg-bg-main shadow-lg">
+              <div className="w-12 h-12 rounded-full border-2 border-accent-secondary flex items-center justify-center bg-bg-main shadow-lg">
                 <span className="font-bold text-lg text-white">{levelInfo.nivel}</span>
               </div>
-              <div className="absolute -bottom-1 -right-1 bg-accent-blue rounded-full p-0.5 border-2 border-bg-sec">
+              <div className="absolute -bottom-1 -right-1 bg-accent-primary rounded-full p-0.5 border-2 border-bg-card">
                 <Star size={10} className="text-white" fill="currentColor" />
               </div>
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-white mb-1">Nível {levelInfo.nivel}</p>
-              <div className="w-full bg-bg-main rounded-full h-1.5 border border-border-subtle overflow-hidden">
+              <div className="w-full bg-bg-main rounded-full h-1.5 border border-border overflow-hidden">
                 <div 
-                  className="bg-gradient-to-r from-accent-purple to-accent-blue h-full rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-accent-secondary to-accent-primary h-full rounded-full transition-all duration-500"
                   style={{ width: `${levelInfo.progressoPercentual}%` }}
                 />
               </div>

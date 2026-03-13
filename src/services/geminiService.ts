@@ -41,57 +41,157 @@ export async function generateDeepeningQuestions(userProfile: any) {
   }
 }
 
-export async function generateRoutineSuggestion(userProfile: any, answers: any) {
+export async function generateRound2Questions(rotina: string) {
   const prompt = `
+    Analise a seguinte rotina diária descrita por um usuário:
+    "${rotina}"
+
+    Gere 3 perguntas de aprofundamento para entender melhor os detalhes dessa rotina.
+    Por exemplo, se o usuário mencionou "edição de vídeo", pergunte sobre o tipo de vídeo, clientes, etc.
+    Se mencionou "faculdade", pergunte sobre o curso, horários específicos.
+    Se mencionou "exercício", pergunte sobre o tipo, objetivo.
+
+    As perguntas devem ser curtas, diretas e focadas em extrair informações úteis para criar tarefas e metas.
+    Retorne APENAS um array JSON de strings com as 3 perguntas.
+    Exemplo: ["Pergunta 1?", "Pergunta 2?", "Pergunta 3?"]
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    return JSON.parse(response.text || '[]');
+  } catch (error) {
+    console.error("Erro ao gerar perguntas da rodada 2:", error);
+    return [
+      "Quais são os principais desafios que você enfrenta nessa rotina?",
+      "Quais ferramentas ou métodos você usa atualmente para se organizar?",
+      "O que você gostaria de ter mais tempo para fazer?"
+    ];
+  }
+}
+
+export async function generateRound3Questions(rotina: string, round2Answers: {question: string, answer: string}[]) {
+  const prompt = `
+    Analise a rotina do usuário e suas respostas de aprofundamento:
+    Rotina: "${rotina}"
+    Respostas de aprofundamento:
+    ${round2Answers.map(a => `- ${a.question}: ${a.answer}`).join('\n')}
+
+    Gere 3 perguntas focadas em Metas e Objetivos para os próximos 3 meses, baseadas no que o usuário faz.
+    Por exemplo, se ele edita vídeos, pergunte quantos vídeos quer ter postado ou qual a meta de inscritos.
+    Se ele estuda, pergunte qual a meta de notas ou projetos.
+
+    As perguntas devem ser curtas, diretas e focadas em definir KPIs e Metas claras.
+    Retorne APENAS um array JSON de strings com as 3 perguntas.
+    Exemplo: ["Pergunta 1?", "Pergunta 2?", "Pergunta 3?"]
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    return JSON.parse(response.text || '[]');
+  } catch (error) {
+    console.error("Erro ao gerar perguntas da rodada 3:", error);
+    return [
+      "Onde você quer estar daqui a 3 meses em relação aos seus projetos principais?",
+      "Qual seria uma meta quantitativa (número) que indicaria sucesso para você nesse período?",
+      "Qual o principal hábito que você precisa construir para alcançar essas metas?"
+    ];
+  }
+}
+
+export async function generateRoutineSuggestion(userProfile: any, round2Answers: {question: string, answer: string}[], round3Answers: {question: string, answer: string}[]) {
+  const prompt = `
+    Atue como "O Arquiteto", um especialista em produtividade.
     Crie uma rotina de produtividade para o seguinte usuário:
     Nome: ${userProfile.nome}
-    Objetivos: ${userProfile.objetivos}
-    Rotina Atual: ${userProfile.rotina}
-    Hábitos Atuais: ${userProfile.habitosAtuais}
-    Horários Disponíveis: ${userProfile.horariosDisponiveis}
-    Hora que Acorda: ${userProfile.horaAcordar || '07:00'}
-    Hora que Dorme: ${userProfile.horaDormir || '23:00'}
-    Filosofia (Shokunin): ${userProfile.shokunin}
-    Respostas Extras: ${answers.join(" | ")}
-
-    Gere uma lista de tarefas (tasks) e uma lista de hábitos (habitos) que ajudarão esse usuário a alcançar seus objetivos.
-    IMPORTANTE: NÃO inclua tarefas relacionadas a alimentação, refeições (café da manhã, almoço, jantar, lanches). Isso será tratado em um módulo separado.
     
-    REGRAS DE HORÁRIOS:
-    1. Você SÓ PODE agendar tarefas e hábitos entre a "Hora que Acorda" (${userProfile.horaAcordar || '07:00'}) e a "Hora que Dorme" (${userProfile.horaDormir || '23:00'}).
-    2. Não crie tarefas de madrugada se o usuário estiver dormindo.
-    3. Considere tempo de deslocamento e pausas naturais.
-    4. Reserve pelo menos 1 hora livre no meio do dia para o almoço (mesmo sem criar a tarefa de almoço).
+    HORÁRIOS FIXOS INFORMADOS:
+    - Hora que Acorda: ${userProfile.horaAcordar || '07:00'}
+    - Hora que Dorme: ${userProfile.horaDormir || '23:00'}
+    - Preferência de Blocos: ${userProfile.preferenciaBlocos || 'misturado'}
+    
+    DESCRIÇÃO DA ROTINA (Texto Livre):
+    "${userProfile.rotina}"
+
+    DETALHES DE APROFUNDAMENTO:
+    ${round2Answers.map(a => `- P: ${a.question}\n  R: ${a.answer}`).join('\n')}
+
+    METAS PARA 3 MESES:
+    ${round3Answers.map(a => `- P: ${a.question}\n  R: ${a.answer}`).join('\n')}
+
+    SUA MISSÃO:
+    Analise o texto livre da rotina e extraia/crie as tarefas e hábitos necessários.
+    
+    VOCÊ DEVE ENTENDER E EXTRAIR:
+    1. Horário que acorda e dorme (se mencionado no texto, use para ajustar, mas respeite os horários fixos como base).
+    2. Atividades fixas (trabalho, aula, etc) com seus respectivos horários.
+    3. Atividades com dias específicos (ex: "aula de programação só nas terças e quintas").
+    4. Tempo disponível/desejado para cada atividade (ex: "quero reservar 240min pra edição").
+    5. Prazos e datas importantes (ex: "semestre vai até 15 de julho").
+
+    Gere uma lista de tarefas (tasks) e uma lista de hábitos (habitos) que ajudarão esse usuário a organizar seu dia.
+    
+    REGRAS DE PREENCHIMENTO DA AGENDA (MUITO IMPORTANTE):
+    1. Você DEVE criar uma escala COMPLETA para um dia típico (ou dias específicos), preenchendo TODOS os horários desde a "Hora que Acorda" até a "Hora que Dorme".
+    2. NÃO DEIXE BURACOS na agenda. Cada minuto do dia deve estar alocado em alguma tarefa.
+    3. Ordem de prioridade para alocação:
+       - 1º: Horários fixos (trabalho, aula, etc) - PRIORIDADE MÁXIMA.
+       - 2º: Refeições (café da manhã, almoço, jantar).
+       - 3º: Atividades programadas (exercício, estudo, edição, etc).
+       - 4º: Preencha TODOS os espaços vazios que sobrarem com "Tempo Livre", "Lazer" ou "Descanso".
+    4. Toda tarefa gerada DEVE ter "horarioInicio" e "horarioFim" definidos (formato HH:mm).
+    5. A soma das durações e a sequência de horários devem ser contínuas.
+    
+    REGRAS DE BLOCOS DE TEMPO (MUITO IMPORTANTE):
+    O usuário escolheu a preferência de blocos: "${userProfile.preferenciaBlocos || 'misturado'}".
+    - Se "curto": Separe tarefas longas (estudo, edição, trabalho focado) em blocos de 30 minutos (ideal para Pomodoro). Ex: "Editar vídeo (30min)".
+    - Se "longo": Agrupe tarefas em blocos de 60 a 90 minutos (para trabalho profundo). Ex: "Editar vídeo (90min)".
+    - Se "misturado": Você decide a melhor duração baseada no tipo de tarefa.
+    - EXCEÇÕES (SEMPRE SEGUEM SEU PRÓPRIO TEMPO, NÃO DIVIDIR): Atividades de horário fixo (aula, trabalho formal), acordar, dormir, refeições, rotina matinal/noturna.
+    - O título da tarefa DEVE incluir a duração em parênteses no final. Ex: "Estudar React (30min)" ou "Trabalho Focado (90min)".
     
     REGRAS DE FREQUÊNCIA PARA TAREFAS:
     1. TAREFAS DIÁRIAS (tipoRepeticao: "diaria"):
        - Apenas hábitos (meditar, exercitar, ler)
        - Tasks muito curtas (< 30 min)
-       - Tasks de manutenção diária (ex: "Responder comentários")
-       - NUNCA coloque tarefas pesadas ou cansativas aqui (ex: "Editar vídeos", "Trabalhar 10 horas").
-    2. TAREFAS SEMANAIS (tipoRepeticao: "semanal" ou "diasSemana" com 1-3 dias):
-       - Trabalhos criativos pesados (ex: "Editar vídeo longo")
-       - Tarefas que exigem muita energia
-       - Exemplo: "Gravar vídeo" (2x por semana), "Postar nas redes" (3x por semana).
-    3. TAREFAS QUINZENAIS (tipoRepeticao: "quinzenal"):
-       - Projetos grandes e complexos
-       - Revisões profundas
-       - Limpeza/organização geral
-    4. TAREFAS MENSAIS (tipoRepeticao: "mensal"):
-       - Planejamento do mês
-       - Análise de resultados
-       - Tarefas de baixa prioridade
+       - Tasks de manutenção diária, refeições, tempo livre.
+    2. TAREFAS SEMANAIS (tipoRepeticao: "semanal" ou "diasSemana"):
+       - Trabalhos criativos pesados
+       - Aulas ou compromissos fixos em dias específicos
+    3. TAREFAS QUINZENAIS/MENSAIS:
+       - Planejamentos, revisões profundas.
 
-    Para cada task gerada, você DEVE incluir uma "justificativaFrequencia" explicando brevemente por que escolheu essa frequência baseada nas regras acima.
+    Para cada task gerada, você DEVE incluir uma "justificativaFrequencia" explicando brevemente por que escolheu essa frequência baseada nas regras acima e no texto do usuário.
 
-    Se o usuário mencionar eventos que acontecem em dias específicos num período (ex: "Faculdade de 09/03 a 11/07, toda Quinta 08:50 - 11:35"), você DEVE gerar uma task com:
+    Se o usuário mencionar eventos que acontecem em dias específicos num período (ex: "Faculdade até 15 de julho, toda Quinta 18:30 - 22:30"), você DEVE gerar uma task com:
     - tipoRepeticao: "diasSemana"
     - diasSemana: array com os dias (0=Dom, 1=Seg, ..., 6=Sáb)
-    - dataInicio: data de início no formato YYYY-MM-DD
-    - dataFim: data de fim no formato YYYY-MM-DD
+    - dataInicio: data de início no formato YYYY-MM-DD (use a data atual se não especificado)
+    - dataFim: data de fim no formato YYYY-MM-DD (se especificado)
     - horarioInicio: horário de início (HH:mm)
     - horarioFim: horário de fim (HH:mm)
     - duracao: duração em minutos
+    
+    PLANO DE 3 MESES (90 DIAS):
+    Baseado nas respostas de Metas para 3 meses, gere um plano trimestral estruturado.
+    - objetivoPrincipal: Resumo do objetivo principal para os próximos 3 meses.
+    - metaTrimestral: A grande meta para 90 dias.
+    - metasMensais: 3 metas (uma para cada mês) que dividem a meta trimestral.
+    - metasSemanais: 4 metas (uma para cada semana do primeiro mês) que dividem a primeira meta mensal.
+    - kpis: 1 a 3 Indicadores-Chave de Performance para acompanhar o progresso (ex: "Vídeos publicados", "Kg perdidos").
     
     Retorne APENAS um objeto JSON com a seguinte estrutura:
     {
@@ -118,7 +218,20 @@ export async function generateRoutineSuggestion(userProfile: any, answers: any) 
           "diasSemana": [0, 1, 2, 3, 4, 5, 6] (array de números, 0=domingo, 6=sábado),
           "horario": "HH:mm"
         }
-      ]
+      ],
+      "planoTrimestral": {
+        "objetivoPrincipal": "string",
+        "metaTrimestral": { "titulo": "string", "descricao": "string" },
+        "metasMensais": [
+          { "titulo": "string", "descricao": "string" }
+        ],
+        "metasSemanais": [
+          { "titulo": "string", "descricao": "string" }
+        ],
+        "kpis": [
+          { "titulo": "string", "unidade": "string", "valorMeta": number }
+        ]
+      }
     }
   `;
 
@@ -305,7 +418,7 @@ export async function generateDarebeePlan(healthData: HealthData): Promise<Worko
     
     return {
       id: crypto.randomUUID(),
-      dataCriacao: new Date().toISOString(),
+      dataCriacao: getDataStringBrasil(),
       dias: parsed.dias || [],
       recomendacoesGerais: parsed.recomendacoesGerais || "Mantenha-se hidratado e respeite seus limites.",
     };
@@ -529,5 +642,76 @@ export async function generateHarderMeta(metaAnterior: Meta, userProfile: any): 
       ehIkigai: false,
       ehShokunin: false,
     };
+  }
+}
+
+export async function generateTasksFromDescription(description: string, context: { tasks: Task[], metas: Meta[], userProfile: any }) {
+  const { tasks, metas, userProfile } = context;
+  
+  const tasksContext = tasks.slice(-10).map(t => `- ${t.titulo} (${t.status})`).join('\n');
+  const metasContext = metas.filter(m => m.status !== 'concluida').map(m => `- ${m.titulo} (${m.periodo})`).join('\n');
+
+  const prompt = `
+    Atue como um assistente de produtividade inteligente. O usuário descreveu o que fez ou o que planeja fazer:
+    "${description}"
+
+    CONTEXTO DO USUÁRIO:
+    - Objetivos: ${userProfile?.objetivos || 'Não informado'}
+    - Metas Atuais:
+    ${metasContext || 'Nenhuma meta ativa'}
+    - Tarefas Recentes:
+    ${tasksContext || 'Nenhuma tarefa recente'}
+
+    SUA MISSÃO:
+    1. Analise o texto do usuário.
+    2. Se ele terminou algo, sugira o PRÓXIMO PASSO lógico (跟进).
+    3. Se ele vai começar algo novo, quebre esse projeto em tarefas acionáveis (máximo 5 tarefas).
+    4. Identifique se alguma tarefa deve ser RECORRENTE (diária ou semanal).
+    5. Tente vincular as novas tarefas a METAS existentes se fizer sentido.
+
+    REGRAS PARA AS TAREFAS:
+    - Títulos claros e acionáveis (começando com verbo no infinitivo).
+    - Duração estimada realista em minutos.
+    - Categoria apropriada.
+    - Prioridade baseada na urgência/importância.
+
+    Retorne APENAS um objeto JSON com a seguinte estrutura:
+    {
+      "tasks": [
+        {
+          "titulo": "string",
+          "descricao": "string",
+          "duracao": number (em minutos),
+          "categoria": "trabalho" | "pessoal" | "saude" | "estudos",
+          "prioridade": "alta" | "media" | "baixa",
+          "tipoRepeticao": "nenhuma" | "diaria" | "semanal",
+          "metaVinculada": "string (ID da meta existente se houver vínculo claro)"
+        }
+      ]
+    }
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    const parsed = JSON.parse(response.text || '{"tasks":[]}');
+    return parsed.tasks.map((t: any) => ({
+      ...t,
+      id: uuidv4(),
+      status: 'nao_iniciada',
+      data: getDataStringBrasil(),
+      xpGanho: false,
+      pomodorosFeitos: 0,
+      vezAtual: 1
+    }));
+  } catch (error) {
+    console.error("Erro ao gerar tasks por descrição:", error);
+    return [];
   }
 }

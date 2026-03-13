@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 import { useApp } from '../../contexts/AppContext';
 import { TaskDetailsModal } from './TaskDetailsModal';
 import { TaskForm } from './TaskForm';
+import { ConfirmModal } from '../common/ConfirmModal';
 import { addDays, format } from 'date-fns';
 
 interface TaskCardProps {
@@ -15,12 +16,13 @@ interface TaskCardProps {
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
   const isFuturo = isDataFutura(task.data);
-  const { activeTaskId, setActiveTaskId, removerTask, atualizarTask, adiarTask, horariosFixos } = useApp();
+  const { activeTaskId, setActiveTaskId, removerTask, atualizarTask, adiarTask, horariosFixos, kpis } = useApp();
   const isActive = activeTaskId === task.id;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPostponeModal, setShowPostponeModal] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [customDate, setCustomDate] = useState('');
 
   const horarioFixoObj = task.horarioFixoId ? horariosFixos.find(h => h.id === task.horarioFixoId) : null;
@@ -69,13 +71,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
   };
 
   const getPriorityColor = () => {
-    if (isActive) return 'border-l-4 border-accent-purple shadow-accent-purple/20 shadow-lg';
-    if (isCurrentTime) return 'border-l-4 border-emerald-400 shadow-emerald-400/20 shadow-lg ring-1 ring-emerald-400/50';
+    if (isActive) return 'border-l-4 border-accent-primary shadow-accent-primary/20 shadow-lg';
+    if (isCurrentTime) return 'border-l-4 border-success shadow-success/20 shadow-lg ring-1 ring-success/50';
     if (task.status === 'atrasada') return 'border-l-4 border-error bg-error/5';
     switch (task.prioridade) {
       case 'alta': return 'border-l-4 border-error';
       case 'media': return 'border-l-4 border-warning';
-      case 'baixa': return 'border-l-4 border-accent-blue';
+      case 'baixa': return 'border-l-4 border-accent-cyan';
       default: return '';
     }
   };
@@ -110,10 +112,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
     setIsMenuOpen(false);
   };
 
-  const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      removerTask(task.id);
+  const handleDelete = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
     }
+    setIsMenuOpen(false);
+    setShowConfirmDelete(true);
   };
 
   return (
@@ -121,20 +126,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
       <div 
         onClick={() => setShowDetailsModal(true)}
         className={clsx(
-        "glass-card p-5 relative group transition-all duration-300 cursor-pointer",
+        "card p-5 relative group transition-all duration-200 cursor-pointer",
         getPriorityColor(),
         isFuturo && "opacity-50 pointer-events-none",
         (isActive || isCurrentTime) && "scale-[1.02]",
-        isCurrentTime && "bg-emerald-400/5",
-        isActive && "bg-accent-purple/5"
+        isCurrentTime && "bg-success/5",
+        isActive && "bg-accent-primary/5"
       )}>
         {isActive && (
-          <div className="absolute top-0 right-0 w-16 h-16 bg-accent-purple/10 rounded-bl-full -z-10"></div>
+          <div className="absolute top-0 right-0 w-16 h-16 bg-accent-primary/10 rounded-bl-full -z-10"></div>
         )}
         {isCurrentTime && !isActive && (
           <>
-            <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-400/10 rounded-bl-full -z-10"></div>
-            <div className="absolute bottom-0 left-0 h-1 bg-emerald-400 transition-all duration-1000 rounded-bl-2xl" style={{ width: `${progressPercentage}%` }}></div>
+            <div className="absolute top-0 right-0 w-16 h-16 bg-success/10 rounded-bl-full -z-10"></div>
+            <div className="absolute bottom-0 left-0 h-1 bg-success transition-all duration-1000 rounded-bl-2xl" style={{ width: `${progressPercentage}%` }}></div>
           </>
         )}
         
@@ -197,6 +202,36 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
         </div>
 
         {task.descricao && <p className="text-text-sec text-sm mb-4 leading-relaxed">{task.descricao}</p>}
+
+        {task.tipoConclusao === 'porKPI' && task.kpiVinculado && (() => {
+          const kpi = kpis.find(k => k.id === task.kpiVinculado);
+          if (!kpi) return null;
+          const progress = Math.min(100, Math.max(0, (kpi.valorAtual / kpi.valorMeta) * 100));
+          return (
+            <div className="mb-4 bg-accent-blue/10 border border-accent-blue/20 rounded-lg p-3">
+              <div className="flex items-center justify-between text-accent-blue mb-2">
+                <div className="flex items-center gap-2">
+                  <Target size={16} />
+                  <span className="text-sm font-medium">Esta task repete até atingir a meta do KPI</span>
+                </div>
+                <span className="text-xs font-bold">{kpi.valorAtual} / {kpi.valorMeta} {kpi.unidade}</span>
+              </div>
+              <div className="h-1.5 bg-bg-sec rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-accent-blue rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {task.tipoConclusao === 'porFinalizacao' && (
+          <div className="mb-4 bg-accent-purple/10 border border-accent-purple/20 rounded-lg p-3 flex items-center gap-2 text-accent-purple">
+            <CheckCircle size={16} />
+            <span className="text-sm font-medium">Só recria nova task após 100% de conclusão</span>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-3 text-xs text-text-sec mt-4">
           <div className="flex items-center gap-1.5 bg-bg-sec px-2.5 py-1 rounded-md border border-border-subtle">
@@ -366,6 +401,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
           atualizarTask(task.id, updatedTask);
         }}
         initialTask={task}
+      />
+
+      <ConfirmModal
+        isOpen={showConfirmDelete}
+        title="Excluir Tarefa"
+        message="Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          setShowConfirmDelete(false);
+          removerTask(task.id);
+        }}
+        onCancel={() => setShowConfirmDelete(false)}
       />
     </>
   );

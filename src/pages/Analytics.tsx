@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, 
@@ -15,6 +15,11 @@ const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'
 export function Analytics() {
   const { tasks, habitos, metas, kpis, config, gamification, getLevelInfo } = useApp();
   const hoje = getDataStringBrasil();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleExportPDF = (period: 'diario' | 'semanal' | 'mensal') => {
     const exportData = {
@@ -36,7 +41,7 @@ export function Analytics() {
       kpis,
       config,
       gamification,
-      timestamp: new Date().toISOString()
+      timestamp: getDataStringBrasil()
     };
     exportDataJSON(allData);
   };
@@ -258,18 +263,20 @@ export function Analytics() {
             <CheckSquare size={20} className="text-accent-blue" />
             Evolução de Tasks (7 dias)
           </h2>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
-                <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
-                <RechartsTooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="Tarefas" name="Concluídas" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
-                <Bar dataKey="TotalTarefas" name="Total" fill="#374151" radius={[4, 4, 0, 0]} barSize={20} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-72 min-h-[288px]">
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="Tarefas" name="Concluídas" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="TotalTarefas" name="Total" fill="#374151" radius={[4, 4, 0, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -278,17 +285,19 @@ export function Analytics() {
             <Calendar size={20} className="text-success" />
             Consistência de Hábitos (%)
           </h2>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
-                <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} domain={[0, 100]} />
-                <RechartsTooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Line type="monotone" dataKey="Habitos" name="Conclusão (%)" stroke="#10b981" strokeWidth={3} dot={{ fill: '#1a1a1a', stroke: '#10b981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10b981' }} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="h-72 min-h-[288px]">
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Line type="monotone" dataKey="Habitos" name="Conclusão (%)" stroke="#10b981" strokeWidth={3} dot={{ fill: '#1a1a1a', stroke: '#10b981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10b981' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
@@ -300,28 +309,30 @@ export function Analytics() {
             <Target size={20} className="text-accent-purple" />
             Status das Metas
           </h2>
-          <div className="h-72 flex items-center justify-center">
+          <div className="h-72 min-h-[288px] flex items-center justify-center">
             {metasPieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={metasPieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {metasPieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip content={<CustomTooltip />} />
-                  <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-              </ResponsiveContainer>
+              mounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={metasPieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {metasPieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip content={<CustomTooltip />} />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )
             ) : (
               <p className="text-text-sec">Nenhuma meta cadastrada.</p>
             )}
@@ -333,20 +344,22 @@ export function Analytics() {
             <Target size={20} className="text-accent-purple" />
             Metas por Período
           </h2>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={metasBarData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
-                <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
-                <RechartsTooltip content={<CustomTooltip />} />
-                <Bar dataKey="Total" radius={[4, 4, 0, 0]} barSize={40}>
-                  {metasBarData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-72 min-h-[288px]">
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={metasBarData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Bar dataKey="Total" radius={[4, 4, 0, 0]} barSize={40}>
+                    {metasBarData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
@@ -358,31 +371,33 @@ export function Analytics() {
             <Activity size={20} className="text-warning" />
             Progresso dos KPIs (Top 3)
           </h2>
-          <div className="h-72 flex items-center justify-center">
+          <div className="h-72 min-h-[288px] flex items-center justify-center">
             {kpiGaugeData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart 
-                  cx="50%" 
-                  cy="50%" 
-                  innerRadius="30%" 
-                  outerRadius="100%" 
-                  barSize={15} 
-                  data={kpiGaugeData}
-                  startAngle={180}
-                  endAngle={0}
-                >
-                  <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                  <RadialBar
-                    minAngle={15}
-                    background={{ fill: '#333' }}
-                    clockWise
-                    dataKey="value"
-                    cornerRadius={10}
-                  />
-                  <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ right: 0 }} />
-                  <RechartsTooltip content={<CustomTooltip />} />
-                </RadialBarChart>
-              </ResponsiveContainer>
+              mounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadialBarChart 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius="30%" 
+                    outerRadius="100%" 
+                    barSize={15} 
+                    data={kpiGaugeData}
+                    startAngle={180}
+                    endAngle={0}
+                  >
+                    <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                    <RadialBar
+                      minAngle={15}
+                      background={{ fill: '#333' }}
+                      clockWise
+                      dataKey="value"
+                      cornerRadius={10}
+                    />
+                    <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ right: 0 }} />
+                    <RechartsTooltip content={<CustomTooltip />} />
+                  </RadialBarChart>
+                </ResponsiveContainer>
+              )
             ) : (
               <p className="text-text-sec">Nenhum KPI cadastrado.</p>
             )}
@@ -394,18 +409,20 @@ export function Analytics() {
             <Activity size={20} className="text-warning" />
             KPIs: Atual vs Meta
           </h2>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={kpiBarData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
-                <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
-                <RechartsTooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Line type="monotone" dataKey="Atual" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#1a1a1a', stroke: '#f59e0b', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#f59e0b' }} />
-                <Line type="monotone" dataKey="Meta" stroke="#6b7280" strokeDasharray="5 5" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="h-72 min-h-[288px]">
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={kpiBarData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Line type="monotone" dataKey="Atual" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#1a1a1a', stroke: '#f59e0b', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#f59e0b' }} />
+                  <Line type="monotone" dataKey="Meta" stroke="#6b7280" strokeDasharray="5 5" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>

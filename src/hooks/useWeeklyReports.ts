@@ -72,7 +72,7 @@ export function useWeeklyReports() {
     });
 
     // 3. Metas
-    const metasAtivas = metas.filter(m => m.status !== 'cancelada');
+    const metasAtivas = metas;
     const metasPlanejadas = metasAtivas.length;
     const metasAtingidas = metasAtivas.filter(m => m.status === 'concluida').length;
     const pendenciasMetas = metasAtivas

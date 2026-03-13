@@ -3,14 +3,22 @@ import { useApp } from '../contexts/AppContext';
 import { KPICard } from '../components/kpis/KPICard';
 import { KPIForm } from '../components/kpis/KPIForm';
 import { KPIGeneratorModal } from '../components/kpis/KPIGeneratorModal';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 import { Plus, Activity, Sparkles } from 'lucide-react';
 import { KPI } from '../types';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export function KPIs() {
   const { kpis, adicionarKPI, atualizarKPI, editarKPI, removerKPI } = useApp();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [editingKPI, setEditingKPI] = useState<KPI | undefined>(undefined);
+  const [kpiToDelete, setKpiToDelete] = useState<string | null>(null);
+
+  const chartData = kpis.map(kpi => ({
+    name: kpi.titulo,
+    progresso: Math.min((kpi.valorAtual / kpi.valorMeta) * 100, 100)
+  }));
 
   const handleSaveGeneratedKPIs = (newKpis: KPI[]) => {
     newKpis.forEach(kpi => adicionarKPI(kpi));
@@ -32,9 +40,7 @@ export function KPIs() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este KPI?')) {
-      removerKPI(id);
-    }
+    setKpiToDelete(id);
   };
 
   const handleCloseForm = () => {
@@ -71,6 +77,27 @@ export function KPIs() {
           </button>
         </div>
       </div>
+
+      {kpis.length > 0 && (
+        <div className="card p-6 h-64">
+          <h3 className="text-lg font-semibold mb-4">Progresso Geral</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
+              <YAxis stroke="#94a3b8" fontSize={12} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+              />
+              <Bar dataKey="progresso" radius={[4, 4, 0, 0]}>
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.progresso >= 100 ? '#10b981' : '#6366f1'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {kpis.length > 0 ? (
@@ -109,6 +136,21 @@ export function KPIs() {
           onSave={handleSaveGeneratedKPIs}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!kpiToDelete}
+        title="Excluir KPI"
+        message="Tem certeza que deseja excluir este KPI? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          if (kpiToDelete) {
+            removerKPI(kpiToDelete);
+            setKpiToDelete(null);
+          }
+        }}
+        onCancel={() => setKpiToDelete(null)}
+      />
     </div>
   );
 }

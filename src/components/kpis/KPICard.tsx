@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { KPI } from '../../types';
 import { Edit2, Save, X, TrendingUp, TrendingDown, Activity, Lock } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -14,6 +14,11 @@ interface KPICardProps {
 export const KPICard: React.FC<KPICardProps> = ({ kpi, onUpdate, onEdit, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newValue, setNewValue] = useState(kpi.valorAtual);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSave = () => {
     onUpdate(kpi.id, newValue);
@@ -110,30 +115,32 @@ export const KPICard: React.FC<KPICardProps> = ({ kpi, onUpdate, onEdit, onDelet
 
       {/* Mini Chart */}
       {history.length > 1 && (
-        <div className="h-16 w-full mt-4 opacity-50 hover:opacity-100 transition-opacity">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1e1e2e', borderColor: '#3f3f46', borderRadius: '8px', fontSize: '12px' }}
-                itemStyle={{ color: '#fff' }}
-                cursor={{ stroke: '#8b5cf6', strokeWidth: 1 }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="valor" 
-                stroke="#8b5cf6" 
-                fillOpacity={1} 
-                fill={`url(#gradient-${kpi.id})`} 
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="h-16 w-full mt-4 opacity-50 hover:opacity-100 transition-opacity min-h-[64px]">
+          {mounted && (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#1e1e2e', borderColor: '#3f3f46', borderRadius: '8px', fontSize: '12px' }}
+                  itemStyle={{ color: '#fff' }}
+                  cursor={{ stroke: '#8b5cf6', strokeWidth: 1 }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="valor" 
+                  stroke="#8b5cf6" 
+                  fillOpacity={1} 
+                  fill={`url(#gradient-${kpi.id})`} 
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
       )}
 

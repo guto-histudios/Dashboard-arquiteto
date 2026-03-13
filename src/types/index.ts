@@ -2,6 +2,7 @@ export type TaskStatus = 'nao_iniciada' | 'em_andamento' | 'concluida' | 'cancel
 export type TaskCategoria = 'trabalho' | 'pessoal' | 'saude' | 'estudos';
 export type TaskPrioridade = 'alta' | 'media' | 'baixa';
 export type TipoRepeticao = 'nenhuma' | 'diaria' | 'diasSemana' | 'semanal' | 'quinzenal' | 'mensal';
+export type TipoConclusao = 'diaria' | 'porKPI' | 'porFinalizacao';
 
 export interface Task {
   id: string;
@@ -16,6 +17,7 @@ export interface Task {
   dataFim?: string; // YYYY-MM-DD (End of recurrence period)
   prazo?: string; // YYYY-MM-DD
   tipoRepeticao: TipoRepeticao;
+  tipoConclusao?: TipoConclusao;
   justificativaFrequencia?: string;
   dataLimite?: string; // YYYY-MM-DD
   horarioInicio?: string; // HH:mm
@@ -100,6 +102,15 @@ export interface HorarioFixo {
   descricao: string;
 }
 
+export interface PlanoTrimestral {
+  id: string;
+  dataInicio: string; // YYYY-MM-DD
+  dataFim: string; // YYYY-MM-DD
+  objetivoPrincipal: string;
+  status: 'ativo' | 'concluido' | 'revisando';
+  mesAtual: number; // 1, 2, or 3
+}
+
 export interface Configuracao {
   timezone: string;
   duracaoPomodoro: number;
@@ -137,6 +148,15 @@ export interface UserProfile {
   horaDormir?: string;
   haraHachiBu: string;
   shokunin: string;
+  profissao?: string;
+  habitosDesejados?: string;
+  habitosAbandonar?: string;
+  tempoNovosHabitos?: string;
+  metasCurtoPrazo?: string;
+  metasLongoPrazo?: string;
+  kpisAcompanhar?: string;
+  definicaoSucesso?: string;
+  preferenciaBlocos?: 'curto' | 'longo' | 'misturado';
 }
 
 export interface HealthData {
@@ -291,6 +311,43 @@ export interface NutritionPlan {
   dicasHaraHachiBu: string[];
 }
 
+export interface Ciclo {
+  id: string;
+  titulo: string;
+  tipo: 'kpi' | 'task';
+  vinculoId: string; // ID do KPI ou Task que disparou a conclusão
+  dataConclusao: string; // YYYY-MM-DD
+  estatisticas: {
+    tasksConcluidas: number;
+    xpGanho: number;
+  };
+}
+
+export interface QuarterlyReport {
+  id: string;
+  dataInicio: string; // YYYY-MM-DD
+  dataFim: string; // YYYY-MM-DD
+  dataGeracao: string; // YYYY-MM-DD
+  
+  // Metricas
+  metasConcluidas: number;
+  metasPlanejadas: number;
+  kpisAtingidos: number;
+  kpisPlanejados: number;
+  tasksFeitas: number;
+  tasksPendentes: number;
+  xpGanho: number;
+  streakHabitos: number;
+  
+  // Analise
+  oQueFoiBem: string[];
+  oQueMelhorar: string[];
+  sugestoesProximoTrimestre: string[];
+  
+  // Descritivo
+  resumo: string;
+}
+
 export interface WeeklyReport {
   id: string;
   dataInicio: string; // YYYY-MM-DD
@@ -329,3 +386,4 @@ export interface WeeklyReport {
   // Foco para proxima semana
   focoProximaSemana?: string;
 }
+

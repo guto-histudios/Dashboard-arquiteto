@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { WeeklyReport } from '../types';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 import { formatarData } from '../utils/dataUtils';
 import { 
   Calendar, CheckCircle, Target, Activity, Trophy, 
@@ -13,6 +14,7 @@ export function AvaliacaoSemanal() {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(
     weeklyReports.length > 0 ? weeklyReports[0].id : null
   );
+  const [reportToDelete, setReportToDelete] = useState<string | null>(null);
 
   const handleGenerate = () => {
     const newReport = generateWeeklyReport();
@@ -93,14 +95,7 @@ export function AvaliacaoSemanal() {
                   </p>
                 </div>
                 <button 
-                  onClick={() => {
-                    if (confirm('Tem certeza que deseja excluir este relatório?')) {
-                      deleteWeeklyReport(selectedReport.id);
-                      if (selectedReportId === selectedReport.id) {
-                        setSelectedReportId(weeklyReports.length > 1 ? weeklyReports[0].id : null);
-                      }
-                    }
-                  }}
+                  onClick={() => setReportToDelete(selectedReport.id)}
                   className="p-2 text-text-sec hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
                   title="Excluir Relatório"
                 >
@@ -314,6 +309,24 @@ export function AvaliacaoSemanal() {
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!reportToDelete}
+        title="Excluir Relatório"
+        message="Tem certeza que deseja excluir este relatório? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          if (reportToDelete) {
+            deleteWeeklyReport(reportToDelete);
+            if (selectedReportId === reportToDelete) {
+              setSelectedReportId(weeklyReports.length > 1 ? weeklyReports[0].id : null);
+            }
+            setReportToDelete(null);
+          }
+        }}
+        onCancel={() => setReportToDelete(null)}
+      />
     </div>
   );
 }

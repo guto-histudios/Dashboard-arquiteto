@@ -3,15 +3,12 @@ export function getDataBrasil(): Date {
 }
 
 export function getDataStringBrasil(date: Date = new Date()): string {
-  // Cuidado com timezone: getTimezoneOffset() retorna a diferença em minutos
-  // Subtraindo o offset, ajustamos a data para que o toISOString() retorne a data local correta
-  const offsetMs = date.getTimezoneOffset() * 60000;
-  const localDate = new Date(date.getTime() - offsetMs);
+  const ano = date.getFullYear();
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
+  const dia = String(date.getDate()).padStart(2, '0');
+  const hoje = `${ano}-${mes}-${dia}`;
   
-  // Converter datas para formato: "YYYY-MM-DD"
-  const hoje = localDate.toISOString().split('T')[0];
-  
-  console.log('[Debug Data] Data atual gerada:', hoje, 'Data original:', date.toDateString());
+  console.log('[Debug Data] Data atual gerada:', hoje, 'Data original:', date.toString());
   return hoje;
 }
 

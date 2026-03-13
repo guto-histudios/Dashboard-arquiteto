@@ -9,9 +9,14 @@ import { Battery, CheckCircle, Calendar, Target, Activity } from 'lucide-react';
 export function ProductivityWidget() {
   const { tasks, habitos } = useApp();
   const hoje = getDataStringBrasil();
+  const [mounted, setMounted] = useState(false);
 
   // Energy level state (1-5)
   const [energyLevel, setEnergyLevel] = useState(3);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const savedEnergy = localStorage.getItem(`energy_${hoje}`);
@@ -50,24 +55,18 @@ export function ProductivityWidget() {
     const energyScore = (energy / 5) * 100;
 
     // Total Score
-    // 40% tasks, 30% habits, 20% pomodoros, 10% energy
+    // 60% tasks, 40% habits
     let totalScore = 0;
     let weightSum = 0;
 
     if (totalTasks > 0) {
-      totalScore += tasksScore * 0.4;
-      weightSum += 0.4;
+      totalScore += tasksScore * 0.6;
+      weightSum += 0.6;
     }
     if (totalHabitos > 0) {
-      totalScore += habitosScore * 0.3;
-      weightSum += 0.3;
+      totalScore += habitosScore * 0.4;
+      weightSum += 0.4;
     }
-    
-    totalScore += pomodorosScore * 0.2;
-    weightSum += 0.2;
-    
-    totalScore += energyScore * 0.1;
-    weightSum += 0.1;
 
     // Normalize if some weights are missing (e.g. no tasks or habits today)
     const finalScore = weightSum > 0 ? Math.round(totalScore / weightSum) : 0;
@@ -167,21 +166,21 @@ export function ProductivityWidget() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-text-sec">
                   <CheckCircle size={16} />
-                  <span className="text-sm">Tarefas (40%)</span>
+                  <span className="text-sm">Tarefas (60%)</span>
                 </div>
                 <span className="font-bold text-sm">{todayMetrics.tasksConcluidas}/{todayMetrics.totalTasks}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-text-sec">
                   <Calendar size={16} />
-                  <span className="text-sm">Hábitos (30%)</span>
+                  <span className="text-sm">Hábitos (40%)</span>
                 </div>
                 <span className="font-bold text-sm">{todayMetrics.habitosConcluidos}/{todayMetrics.totalHabitos}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-text-sec">
                   <Target size={16} />
-                  <span className="text-sm">Pomodoros (20%)</span>
+                  <span className="text-sm">Pomodoros</span>
                 </div>
                 <span className="font-bold text-sm">{todayMetrics.pomodorosFeitos}</span>
               </div>
@@ -192,7 +191,7 @@ export function ProductivityWidget() {
           <div className="flex flex-col justify-center md:border-l border-border-subtle md:pl-6">
             <div className="flex items-center gap-2 text-text-sec mb-4">
               <Battery size={16} />
-              <span className="text-sm font-medium">Nível de Energia (10%)</span>
+              <span className="text-sm font-medium">Nível de Energia</span>
             </div>
             <div className="flex gap-2 justify-between max-w-[200px]">
               {[1, 2, 3, 4, 5].map((level) => (
@@ -223,21 +222,23 @@ export function ProductivityWidget() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-text-sec">Evolução (7 dias)</span>
             </div>
-            <div className="h-24 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={historyData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <YAxis domain={[0, 100]} hide />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="var(--theme-primary)" 
-                    strokeWidth={3} 
-                    dot={{ fill: 'var(--theme-primary)', r: 3, strokeWidth: 0 }} 
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-24 min-h-[96px] w-full">
+              {mounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={historyData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                    <YAxis domain={[0, 100]} hide />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="var(--theme-primary)" 
+                      strokeWidth={3} 
+                      dot={{ fill: 'var(--theme-primary)', r: 3, strokeWidth: 0 }} 
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 

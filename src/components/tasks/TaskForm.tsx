@@ -24,6 +24,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
   const [dataInicio, setDataInicio] = useState(initialTask?.dataInicio || '');
   const [dataFim, setDataFim] = useState(initialTask?.dataFim || '');
   const [tipoRepeticao, setTipoRepeticao] = useState<TipoRepeticao>(initialTask?.tipoRepeticao || 'nenhuma');
+  const [tipoConclusao, setTipoConclusao] = useState<Task['tipoConclusao']>(initialTask?.tipoConclusao || 'diaria');
   const [justificativaFrequencia, setJustificativaFrequencia] = useState(initialTask?.justificativaFrequencia || '');
   const [diasSemana, setDiasSemana] = useState<number[]>(initialTask?.diasSemana || []);
   const [horarioFixo, setHorarioFixo] = useState(initialTask?.horarioFixo || false);
@@ -45,6 +46,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       setDataInicio(initialTask?.dataInicio || '');
       setDataFim(initialTask?.dataFim || '');
       setTipoRepeticao(initialTask?.tipoRepeticao || 'nenhuma');
+      setTipoConclusao(initialTask?.tipoConclusao || 'diaria');
       setJustificativaFrequencia(initialTask?.justificativaFrequencia || '');
       setDiasSemana(initialTask?.diasSemana || []);
       setHorarioFixo(initialTask?.horarioFixo || false);
@@ -149,6 +151,11 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (tipoConclusao === 'porKPI' && !kpiVinculado) {
+      alert('Para o tipo de conclusão "Por KPI", você deve selecionar um KPI vinculado.');
+      return;
+    }
+
     let finalHorarioFixoId = horarioFixoId;
     
     if (horarioFixo && !horarioFixoId && horario && titulo) {
@@ -181,6 +188,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       dataInicio: dataInicio || undefined,
       dataFim: dataFim || undefined,
       tipoRepeticao,
+      tipoConclusao,
       justificativaFrequencia: justificativaFrequencia || undefined,
       diasSemana: tipoRepeticao === 'diasSemana' ? diasSemana : undefined,
       vezAtual: initialTask?.vezAtual || 1,
@@ -404,6 +412,24 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
                 "{justificativaFrequencia}"
               </p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2 text-text-sec">Tipo de Conclusão</label>
+            <select 
+              value={tipoConclusao} 
+              onChange={(e) => setTipoConclusao(e.target.value as Task['tipoConclusao'])} 
+              className="input-modern appearance-none"
+            >
+              <option value="diaria">Por Tempo (Diária/Sempre igual)</option>
+              <option value="porFinalizacao">Por Finalização (Termina quando pronto)</option>
+              <option value="porKPI">Por KPI (Termina quando KPI atinge 100%)</option>
+            </select>
+            <p className="mt-1 text-xs text-text-sec">
+              {tipoConclusao === 'diaria' && "A tarefa se repete normalmente de acordo com a frequência."}
+              {tipoConclusao === 'porFinalizacao' && "A tarefa só será recriada quando for concluída 100%."}
+              {tipoConclusao === 'porKPI' && "A tarefa se repete até o KPI vinculado atingir a meta."}
+            </p>
           </div>
 
           {tipoRepeticao !== 'nenhuma' && (

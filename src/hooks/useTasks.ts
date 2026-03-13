@@ -60,7 +60,7 @@ export function useTasks() {
         return task;
       }).filter((task): task is Task => task.status !== 'cancelada');
       
-      const tasksRecorrentes = tasksParaSalvar.filter(t => t.tipoRepeticao !== 'nenhuma');
+      const tasksRecorrentes = tasksParaSalvar.filter(t => t.tipoRepeticao !== 'nenhuma' && !t.concluidaDefinitivamente);
       
       tasksRecorrentes.forEach(task => {
         if (task.status === 'concluida') {
@@ -136,7 +136,7 @@ export function useTasks() {
     }));
   };
 
-  const mudarStatus = (id: string, novoStatus: TaskStatus, onConcluir?: (task: Task) => void) => {
+  const mudarStatus = (id: string, novoStatus: TaskStatus, onConcluir?: (task: Task) => void, kpiAtingido?: boolean) => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
 
@@ -159,22 +159,27 @@ export function useTasks() {
         if (t.tipoRepeticao !== 'nenhuma') {
           newTasks[taskIndex].vezesConcluida = (t.vezesConcluida || 0) + 1;
           
-          const nextDate = calculateNextDate(t.data, t.tipoRepeticao, t.diasSemana);
-          const existingIndex = newTasks.findIndex(existing => existing.titulo === t.titulo && existing.data === nextDate && existing.tipoRepeticao === t.tipoRepeticao);
-          
-          if (existingIndex === -1) {
-            newTasks.push({
-              ...t,
-              id: uuidv4(),
-              status: 'nao_iniciada',
-              data: nextDate,
-              xpGanho: false,
-              vezesConcluida: newTasks[taskIndex].vezesConcluida,
-              concluidaDefinitivamente: false,
-              dataConclusaoDefinitiva: undefined
-            });
+          if (t.tipoConclusao === 'porKPI' && kpiAtingido) {
+            newTasks[taskIndex].concluidaDefinitivamente = true;
+            newTasks[taskIndex].dataConclusaoDefinitiva = getDataStringBrasil();
           } else {
-            newTasks[existingIndex].vezesConcluida = newTasks[taskIndex].vezesConcluida;
+            const nextDate = calculateNextDate(t.data, t.tipoRepeticao, t.diasSemana);
+            const existingIndex = newTasks.findIndex(existing => existing.titulo === t.titulo && existing.data === nextDate && existing.tipoRepeticao === t.tipoRepeticao);
+            
+            if (existingIndex === -1) {
+              newTasks.push({
+                ...t,
+                id: uuidv4(),
+                status: 'nao_iniciada',
+                data: nextDate,
+                xpGanho: false,
+                vezesConcluida: newTasks[taskIndex].vezesConcluida,
+                concluidaDefinitivamente: false,
+                dataConclusaoDefinitiva: undefined
+              });
+            } else {
+              newTasks[existingIndex].vezesConcluida = newTasks[taskIndex].vezesConcluida;
+            }
           }
         } else if (t.deadline) {
           newTasks[taskIndex].concluidaDefinitivamente = true;

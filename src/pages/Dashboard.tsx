@@ -9,6 +9,8 @@ import { DailyQuote } from '../components/common/DailyQuote';
 import { ProductivityWidget } from '../components/dashboard/ProductivityWidget';
 import { ResumoSemanal } from '../components/dashboard/ResumoSemanal';
 import { ProductivityComparison } from '../components/dashboard/ProductivityComparison';
+import { PlanoTrimestralWidget } from '../components/dashboard/PlanoTrimestralWidget';
+import { AITaskGenerator } from '../components/tasks/AITaskGenerator';
 import { getDataStringBrasil, formatarData, deveMostrarTask } from '../utils/dataUtils';
 import { AlertTriangle, CheckCircle, Calendar, Target, Activity, Trophy, Star, Flame, Zap, Briefcase, Award, Crown, Shield, Mountain, Sun, Flag, TrendingUp, ChevronUp, ChevronsUp, Sunrise, Moon, Clock, Focus, Wind, Infinity as InfinityIcon } from 'lucide-react';
 import { BadgeInfo } from '../types';
@@ -86,7 +88,7 @@ export function Dashboard() {
         </div>
         <button 
           onClick={() => setIsImprevistoOpen(true)}
-          className="bg-bg-sec border border-error/30 text-error hover:bg-error hover:text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 group"
+          className="bg-bg-card border border-error/30 text-error hover:bg-error hover:text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-all duration-200 hover:brightness-110 active:scale-95 group"
         >
           <AlertTriangle size={20} className="group-hover:animate-pulse" />
           <span className="font-medium">Alerta de Imprevisto</span>
@@ -99,6 +101,9 @@ export function Dashboard() {
         </div>
       )}
 
+      {/* Plano Trimestral */}
+      <PlanoTrimestralWidget />
+
       {/* Productivity Widget */}
       <ProductivityWidget />
 
@@ -107,6 +112,9 @@ export function Dashboard() {
 
       {/* Resumo Semanal */}
       <ResumoSemanal />
+
+      {/* Gerador de Tasks por IA */}
+      <AITaskGenerator />
 
       {/* Gamification Section */}
       <div className="glass-card p-6 relative overflow-hidden">

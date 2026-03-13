@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { HealthData } from '../types';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 import { generateDarebeePlan } from '../services/geminiService';
 import { Dumbbell, Activity, Calendar, Clock, Heart, ArrowRight, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -9,6 +10,7 @@ export function Darebee() {
   const { healthData, setHealthData, workoutPlan, setWorkoutPlan } = useApp();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   const [formData, setFormData] = useState<HealthData>(healthData || {
     peso: 70,
@@ -50,9 +52,7 @@ export function Darebee() {
   };
 
   const handleReset = () => {
-    if (window.confirm('Tem certeza que deseja criar um novo plano? O plano atual será perdido.')) {
-      setWorkoutPlan(null);
-    }
+    setShowConfirmReset(true);
   };
 
   if (workoutPlan) {

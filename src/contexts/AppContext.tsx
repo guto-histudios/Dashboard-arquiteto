@@ -7,7 +7,10 @@ import { useConfiguracoes } from '../hooks/useConfiguracoes';
 import { useGamification, BADGES_INFO } from '../hooks/useGamification';
 import { useHaraHachiBu } from '../hooks/useHaraHachiBu';
 import { useWeeklyReports } from '../hooks/useWeeklyReports';
-import { Task, Habito, Meta, KPI, Configuracao, HorarioFixo, UserProfile, TaskStatus, HealthData, WorkoutPlan, GamificationState, BadgeInfo, DailyMeals, Recompensa, WeeklyReport } from '../types';
+import { usePlanoTrimestral } from '../hooks/usePlanoTrimestral';
+import { useCiclos } from '../hooks/useCiclos';
+import { useRevisaoTrimestral } from '../hooks/useRevisaoTrimestral';
+import { Task, Habito, Meta, KPI, Configuracao, HorarioFixo, UserProfile, TaskStatus, HealthData, WorkoutPlan, GamificationState, BadgeInfo, DailyMeals, Recompensa, WeeklyReport, PlanoTrimestral, Ciclo, QuarterlyReport } from '../types';
 import { getDataStringBrasil } from '../utils/dataUtils';
 import { THEMES } from '../utils/themeUtils';
 
@@ -73,17 +76,34 @@ interface AppContextData {
   useReward: (compraId: string) => void;
   recentBadges: string[];
   clearRecentBadge: (badgeId: string) => void;
+  resetGamification: () => void;
 
   // Weekly Reports
   weeklyReports: WeeklyReport[];
   generateWeeklyReport: () => WeeklyReport;
   deleteWeeklyReport: (id: string) => void;
 
+  // Quarterly Reports
+  quarterlyReports: QuarterlyReport[];
+  generateQuarterlyReport: () => QuarterlyReport;
+
+  // Plano Trimestral
+  planoTrimestral: PlanoTrimestral | null;
+  setPlanoTrimestral: (plano: PlanoTrimestral | null) => void;
+  criarPlano: (objetivoPrincipal: string) => PlanoTrimestral;
+  atualizarPlano: (updates: Partial<PlanoTrimestral>) => void;
+
+  // Ciclos
+  ciclos: Ciclo[];
+  salvarCiclo: (ciclo: Ciclo) => void;
+
   carregando: boolean;
   activeTaskId: string | null;
   setActiveTaskId: (id: string | null) => void;
   isFocusMode: boolean;
   setIsFocusMode: (isFocus: boolean) => void;
+  taskParaProgredir: Task | null;
+  setTaskParaProgredir: (task: Task | null) => void;
 }
 
 const AppContext = createContext<AppContextData>({} as AppContextData);
@@ -97,8 +117,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const gamificationHook = useGamification();
   const haraHachiBuHook = useHaraHachiBu();
   const weeklyReportsHook = useWeeklyReports();
+  const planoTrimestralHook = usePlanoTrimestral();
+  const ciclosHook = useCiclos();
+  const revisaoTrimestralHook = useRevisaoTrimestral();
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [taskParaProgredir, setTaskParaProgredir] = useState<Task | null>(null);
 
   const carregando = tasksHook.carregando || habitosHook.carregando || metasHook.carregando || kpisHook.carregando || configHook.carregando || gamificationHook.carregando || haraHachiBuHook.carregando || weeklyReportsHook.carregando;
 
@@ -155,6 +179,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const mudarStatus = (id: string, status: TaskStatus) => {
     const taskAnterior = tasksHook.tasks.find(t => t.id === id);
     
+    let kpiAtingido = false;
+    if (taskAnterior?.kpiVinculado && status === 'concluida' && taskAnterior.status !== 'concluida') {
+       const kpi = kpisHook.kpis.find(k => k.id === taskAnterior.kpiVinculado);
+       if (kpi && kpi.valorAtual + 1 >= kpi.valorMeta) {
+         kpiAtingido = true;
+       }
+    }
+    
     tasksHook.mudarStatus(id, status, (task) => {
       // Logic when task is completed
       if (status === 'concluida' && taskAnterior?.status !== 'concluida') {
@@ -183,15 +215,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const horaAtual = new Date().getHours();
         if (horaAtual < 7) gamificationHook.unlockBadge('madrugador');
         if (horaAtual >= 23) gamificationHook.unlockBadge('noite_alta');
+
+        // Trigger Progression Modal
+        if (task.tipoConclusao !== 'porKPI' || kpiAtingido) {
+          setTaskParaProgredir(task);
+        }
       }
 
-      if (task.kpiVinculado) {
+      if (task.kpiVinculado && status === 'concluida' && taskAnterior?.status !== 'concluida') {
         const kpi = kpisHook.kpis.find(k => k.id === task.kpiVinculado);
         if (kpi) {
           kpisHook.atualizarKPI(kpi.id, kpi.valorAtual + 1);
         }
       }
-    });
+    }, kpiAtingido);
   };
 
   const removerTask = (id: string) => {
@@ -459,7 +496,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       kpis: kpisHook.kpis,
       setKPIs: kpisHook.setKPIs,
       adicionarKPI: kpisHook.adicionarKPI,
-      atualizarKPI: kpisHook.atualizarKPI,
+      atualizarKPI: (id, novoValor) => {
+        kpisHook.atualizarKPI(id, novoValor);
+        
+        // Logic to complete tasks linked to this KPI
+        const tasksVinculadas = tasksHook.tasks.filter(t => t.kpiVinculado === id && t.status !== 'concluida');
+        tasksVinculadas.forEach(task => {
+            tasksHook.mudarStatus(task.id, 'concluida', (t) => {
+              // Optional: Add logic for XP/Coins here if needed
+            });
+        });
+      },
       editarKPI: kpisHook.editarKPI,
       removerKPI: removerKPI,
 
@@ -491,6 +538,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       useReward: gamificationHook.useReward,
       recentBadges: gamificationHook.recentBadges,
       clearRecentBadge: gamificationHook.clearRecentBadge,
+      resetGamification: gamificationHook.resetGamification,
 
       weeklyReports: weeklyReportsHook.reports,
       generateWeeklyReport: () => weeklyReportsHook.generateReport(
@@ -502,11 +550,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ),
       deleteWeeklyReport: weeklyReportsHook.deleteReport,
 
+      quarterlyReports: revisaoTrimestralHook.reports,
+      generateQuarterlyReport: () => revisaoTrimestralHook.gerarRelatorio(
+        metasHook.metas,
+        kpisHook.kpis,
+        tasksHook.tasks,
+        gamificationHook.gamification,
+        habitosHook.habitos
+      ),
+
+      planoTrimestral: planoTrimestralHook.planoTrimestral,
+      setPlanoTrimestral: planoTrimestralHook.setPlanoTrimestral,
+      criarPlano: planoTrimestralHook.criarPlano,
+      atualizarPlano: planoTrimestralHook.atualizarPlano,
+
+      ciclos: ciclosHook.ciclosConcluidos,
+      salvarCiclo: ciclosHook.salvarCiclo,
+
       carregando,
       activeTaskId,
       setActiveTaskId,
       isFocusMode,
-      setIsFocusMode
+      setIsFocusMode,
+      taskParaProgredir,
+      setTaskParaProgredir
     }}>
       {children}
     </AppContext.Provider>
