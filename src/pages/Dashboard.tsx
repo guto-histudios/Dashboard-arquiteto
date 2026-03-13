@@ -117,7 +117,7 @@ export function Dashboard() {
       <AITaskGenerator />
 
       {/* Gamification Section */}
-      <div className="glass-card p-6 relative overflow-hidden">
+      <div className="card p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-accent-purple/10 to-transparent rounded-bl-full -z-10"></div>
         <div className="flex flex-col md:flex-row gap-8 items-center">
           

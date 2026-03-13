@@ -126,7 +126,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onStatusChange }) => {
       <div 
         onClick={() => setShowDetailsModal(true)}
         className={clsx(
-        "card p-5 relative group transition-all duration-200 cursor-pointer",
+        "card relative group transition-all duration-200 cursor-pointer",
         getPriorityColor(),
         isFuturo && "opacity-50 pointer-events-none",
         (isActive || isCurrentTime) && "scale-[1.02]",
