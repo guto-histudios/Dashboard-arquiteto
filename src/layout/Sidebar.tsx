@@ -10,6 +10,10 @@ const navigation = [
   { name: 'Metas', href: '/metas', icon: Target },
   { name: 'KPIs', href: '/kpis', icon: Activity },
   { name: 'Analytics', href: '/analytics', icon: BarChart2 },
+  { name: 'Hara Hachi Bu', href: '/harahachibu', icon: Utensils },
+  { name: 'Darebee', href: '/darebee', icon: Dumbbell },
+  { name: 'Loja', href: '/loja', icon: ShoppingBag },
+  { name: 'Análise semanal', href: '/avaliacao-semanal', icon: Star },
   { name: 'Configurações', href: '/configuracoes', icon: Settings },
 ];
 

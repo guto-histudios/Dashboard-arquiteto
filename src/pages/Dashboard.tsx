@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
+import { Clock } from '../components/common/Clock';
 import { TaskCard } from '../components/tasks/TaskCard';
 import { HabitoCard } from '../components/habitos/HabitoCard';
 import { KPICard } from '../components/kpis/KPICard';
@@ -84,9 +85,9 @@ export function Dashboard() {
   return (
     <div className="space-y-10 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-4xl font-serif font-bold tracking-tight mb-1 text-text-main">Dashboard</h1>
-          <p className="text-text-sec font-medium">{formatarData(hoje, "EEEE, d 'de' MMMM 'de' yyyy")}</p>
+        <div className="flex justify-between w-full items-center">
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-text-main">Dashboard</h1>
+          <Clock />
         </div>
         <Button 
           onClick={() => setIsImprevistoOpen(true)}
