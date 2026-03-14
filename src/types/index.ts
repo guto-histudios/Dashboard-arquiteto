@@ -1,3 +1,23 @@
+export interface RoadmapMilestone {
+  id: string;
+  titulo: string;
+  descricao: string;
+  status: 'pendente' | 'em_andamento' | 'concluido';
+  pontosXP: number; // XP ganho ao concluir
+}
+
+export interface RoadmapArea {
+  id: string;
+  area: 'saude' | 'carreira' | 'financas' | 'desenvolvimento_pessoal' | 'relacionamentos';
+  nivelAtual: number;
+  tituloNivel: string; // Ex: "O Despertar da Força" ou "Iniciante"
+  descricaoNivel: string;
+  milestones: RoadmapMilestone[]; // Marcos necessários para passar de nível
+  status: 'ativo' | 'concluido'; // Concluido significa que o nivel atual foi superado e precisa gerar o proximo
+  dataCriacao: string;
+  dataConclusaoNivel?: string;
+}
+
 export type TaskStatus = 'nao_iniciada' | 'em_andamento' | 'concluida' | 'cancelada' | 'nao_feita' | 'adiada' | 'atrasada';
 export type TaskCategoria = 'trabalho' | 'pessoal' | 'saude' | 'estudos';
 export type TaskPrioridade = 'alta' | 'media' | 'baixa';

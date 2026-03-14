@@ -7,7 +7,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Tarefas', href: '/tasks', icon: CheckSquare },
   { name: 'Hábitos', href: '/habitos', icon: Calendar },
-  { name: 'Metas', href: '/metas', icon: Target },
+  { name: 'Roadmaps', href: '/roadmaps', icon: Target },
   { name: 'KPIs', href: '/kpis', icon: Activity },
   { name: 'Analytics', href: '/analytics', icon: BarChart2 },
   { name: 'Hara Hachi Bu', href: '/harahachibu', icon: Utensils },

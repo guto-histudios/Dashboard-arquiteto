@@ -10,9 +10,10 @@ import { useWeeklyReports } from '../hooks/useWeeklyReports';
 import { usePlanoTrimestral } from '../hooks/usePlanoTrimestral';
 import { useCiclos } from '../hooks/useCiclos';
 import { useRevisaoTrimestral } from '../hooks/useRevisaoTrimestral';
-import { Task, Habito, Meta, KPI, Configuracao, HorarioFixo, UserProfile, TaskStatus, HealthData, WorkoutPlan, GamificationState, BadgeInfo, DailyMeals, Recompensa, WeeklyReport, PlanoTrimestral, Ciclo, QuarterlyReport } from '../types';
+import { Task, Habito, Meta, KPI, Configuracao, HorarioFixo, UserProfile, TaskStatus, HealthData, WorkoutPlan, GamificationState, BadgeInfo, DailyMeals, Recompensa, WeeklyReport, PlanoTrimestral, Ciclo, QuarterlyReport, RoadmapArea } from '../types';
 import { getDataStringBrasil } from '../utils/dataUtils';
 import { THEMES } from '../utils/themeUtils';
+import { generateRoadmapLevel } from '../services/geminiService';
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -97,6 +98,11 @@ interface AppContextData {
   ciclos: Ciclo[];
   salvarCiclo: (ciclo: Ciclo) => void;
 
+  roadmaps: RoadmapArea[];
+  setRoadmaps: (roadmaps: RoadmapArea[]) => void;
+  gerarNovoNivelRoadmap: (area: string) => Promise<void>;
+  concluirMilestone: (roadmapId: string, milestoneId: string) => void;
+
   carregando: boolean;
   activeTaskId: string | null;
   setActiveTaskId: (id: string | null) => void;
@@ -120,11 +126,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const planoTrimestralHook = usePlanoTrimestral();
   const ciclosHook = useCiclos();
   const revisaoTrimestralHook = useRevisaoTrimestral();
+  const [roadmaps, setRoadmaps] = useState<RoadmapArea[]>([]);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [taskParaProgredir, setTaskParaProgredir] = useState<Task | null>(null);
 
   const carregando = tasksHook.carregando || habitosHook.carregando || metasHook.carregando || kpisHook.carregando || configHook.carregando || gamificationHook.carregando || haraHachiBuHook.carregando || weeklyReportsHook.carregando;
+
+  // Load roadmaps from localStorage
+  useEffect(() => {
+    const salvos = localStorage.getItem('roadmaps');
+    if (salvos) setRoadmaps(JSON.parse(salvos));
+  }, []);
+
+  // Save roadmaps to localStorage
+  useEffect(() => {
+    localStorage.setItem('roadmaps', JSON.stringify(roadmaps));
+  }, [roadmaps]);
+
+  const gerarNovoNivelRoadmap = async (area: string) => {
+    const roadmap = roadmaps.find(r => r.area === area);
+    const nivelAtual = roadmap ? roadmap.nivelAtual : 0;
+    
+    // TODO: Get user profile from configHook
+    const perfilUsuario = { objetivos: '', rotina: '' }; 
+
+    const novosMilestones = await generateRoadmapLevel(area, nivelAtual, perfilUsuario);
+    
+    if (roadmap) {
+      setRoadmaps(prev => prev.map(r => r.area === area ? { ...r, nivelAtual: nivelAtual + 1, milestones: novosMilestones } : r));
+    } else {
+      setRoadmaps(prev => [...prev, { id: uuidv4(), area: area as any, nivelAtual: nivelAtual + 1, milestones: novosMilestones }]);
+    }
+  };
+
+  const concluirMilestone = (roadmapId: string, milestoneId: string) => {
+    setRoadmaps(prev => prev.map(r => {
+      if (r.id === roadmapId) {
+        const novosMilestones = r.milestones.map(m => m.id === milestoneId ? { ...m, status: 'concluido' } : m);
+        const xp = r.milestones.find(m => m.id === milestoneId)?.pontosXP || 0;
+        gamificationHook.addXP(xp);
+        return { ...r, milestones: novosMilestones };
+      }
+      return r;
+    }));
+  };
 
   // Auto-create tasks for fixed schedules
   useEffect(() => {
@@ -566,6 +612,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       ciclos: ciclosHook.ciclosConcluidos,
       salvarCiclo: ciclosHook.salvarCiclo,
+
+      roadmaps,
+      setRoadmaps,
+      gerarNovoNivelRoadmap,
+      concluirMilestone,
 
       carregando,
       activeTaskId,

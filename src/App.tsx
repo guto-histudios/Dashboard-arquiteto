@@ -16,6 +16,7 @@ import { HaraHachiBu } from './pages/HaraHachiBu';
 import { Perfil } from './pages/Perfil';
 import { Loja } from './pages/Loja';
 import { RevisaoTrimestral } from './pages/RevisaoTrimestral';
+import Roadmaps from './pages/Roadmaps';
 import { Onboarding } from './components/Onboarding';
 import { BadgeNotification } from './components/gamification/BadgeNotification';
 import { TaskProgressionModal } from './components/tasks/TaskProgressionModal';
@@ -62,6 +63,7 @@ function AppContent() {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/avaliacao-semanal" element={<AvaliacaoSemanal />} />
           <Route path="/revisao-trimestral" element={<RevisaoTrimestral />} />
+          <Route path="/roadmaps" element={<Roadmaps />} />
           <Route path="/loja" element={<Loja />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="*" element={<Navigate to="/" replace />} />

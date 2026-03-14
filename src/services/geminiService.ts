@@ -1,10 +1,54 @@
 import { GoogleGenAI } from "@google/genai";
-import { HealthData, WorkoutPlan, Meta, MetaPeriodo, Task, KPI } from "../types";
+import { HealthData, WorkoutPlan, Meta, MetaPeriodo, Task, KPI, RoadmapMilestone } from "../types";
 import { v4 as uuidv4 } from 'uuid';
 import { getDataStringBrasil } from "../utils/dataUtils";
 import { addDays, endOfWeek, endOfMonth, endOfQuarter, format } from "date-fns";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function generateRoadmapLevel(area: string, nivelAtual: number, perfilUsuario: any): Promise<RoadmapMilestone[]> {
+  const prompt = `
+    Atue como um mentor de desenvolvimento pessoal.
+    O usuário está na área de "${area}" e atualmente no nível ${nivelAtual}.
+    Crie 4 a 5 marcos (milestones) lógicos e sequenciais para que ele supere este nível e avance para o próximo.
+    
+    Perfil do Usuário:
+    Objetivos: ${perfilUsuario?.objetivos || 'Não informado'}
+    Rotina: ${perfilUsuario?.rotina || 'Não informado'}
+    
+    Regras:
+    - Marcos devem ser acionáveis, específicos e mensuráveis.
+    - O nível de dificuldade deve ser apropriado para alguém que está no nível ${nivelAtual}.
+    - Retorne APENAS um array JSON com a seguinte estrutura:
+    [
+      {
+        "titulo": "string",
+        "descricao": "string",
+        "pontosXP": number (entre 50 e 200)
+      }
+    ]
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-pro-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    const milestones = JSON.parse(response.text || '[]');
+    return milestones.map((m: any) => ({
+      ...m,
+      id: uuidv4(),
+      status: 'pendente'
+    }));
+  } catch (error) {
+    console.error("Erro ao gerar milestones do roadmap:", error);
+    throw error;
+  }
+}
 
 export async function generateDeepeningQuestions(userProfile: any) {
   const prompt = `
@@ -23,7 +67,7 @@ export async function generateDeepeningQuestions(userProfile: any) {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -58,7 +102,7 @@ export async function generateRound2Questions(rotina: string) {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -94,7 +138,7 @@ export async function generateRound3Questions(rotina: string, round2Answers: {qu
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -237,7 +281,7 @@ export async function generateRoutineSuggestion(userProfile: any, round2Answers:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -255,7 +299,7 @@ export async function generateHaraHachiBuMeals(healthData: HealthData, userProfi
   const prompt = `
     Atue como um nutricionista especialista na filosofia Hara Hachi Bu (comer até 80% da capacidade).
     Gere 3 OPÇÕES DE REFEIÇÕES DIÁRIAS (Opção 1, Opção 2, Opção 3) para o usuário.
-
+    
     Dados do usuário:
     - Peso: ${healthData.peso} kg
     - Altura: ${healthData.altura} cm
@@ -292,7 +336,7 @@ export async function generateHaraHachiBuMeals(healthData: HealthData, userProfi
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -339,7 +383,7 @@ export async function generateKPIs(userProfile: any, habitos: any[], metas: Meta
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -407,7 +451,7 @@ export async function generateDarebeePlan(healthData: HealthData): Promise<Worko
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -458,7 +502,7 @@ export async function generateHabitos(userProfile: any, habitosAtuais: any[]): P
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -526,7 +570,7 @@ export async function generateMetas(userProfile: any, tasks: Task[] = [], kpis: 
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -589,7 +633,7 @@ export async function generateHarderMeta(metaAnterior: Meta, userProfile: any): 
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -693,7 +737,7 @@ export async function generateTasksFromDescription(description: string, context:
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",

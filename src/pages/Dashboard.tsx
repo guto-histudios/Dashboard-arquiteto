@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { Clock } from '../components/common/Clock';
+import { Clock as ClockWidget } from '../components/common/Clock';
 import { TaskCard } from '../components/tasks/TaskCard';
 import { HabitoCard } from '../components/habitos/HabitoCard';
 import { KPICard } from '../components/kpis/KPICard';
@@ -19,7 +19,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 
 export function Dashboard() {
-  const { tasks, habitos, kpis, mudarStatus, toggleConclusaoHabito, atualizarKPI, calcularProgressoHabitos, config, userProfile, gamification, getLevelInfo, badgesInfo } = useApp();
+  const { tasks, habitos, kpis, mudarStatus, toggleConclusaoHabito, atualizarKPI, calcularProgressoHabitos, config, userProfile, gamification, getLevelInfo, badgesInfo, roadmaps } = useApp();
   const [isImprevistoOpen, setIsImprevistoOpen] = useState(false);
   const hoje = getDataStringBrasil();
 
@@ -87,7 +87,7 @@ export function Dashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex justify-between w-full items-center">
           <h1 className="text-4xl font-serif font-bold tracking-tight text-text-main">Dashboard</h1>
-          <Clock />
+          <ClockWidget />
         </div>
         <Button 
           onClick={() => setIsImprevistoOpen(true)}
@@ -106,6 +106,35 @@ export function Dashboard() {
 
       {/* Plano Trimestral */}
       <PlanoTrimestralWidget />
+
+      {/* Roadmaps Ativos */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-serif font-bold flex items-center gap-3 tracking-tight text-text-main">
+          <div className="p-2 bg-accent-blue/10 rounded-lg">
+            <Target size={24} className="text-accent-blue" strokeWidth={1.5} />
+          </div>
+          Roadmaps Ativos
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {roadmaps.map(r => (
+            <Card key={r.id} className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-lg capitalize">{r.area.replace('_', ' ')}</h3>
+                <span className="text-sm text-text-sec">Nível {r.nivelAtual}</span>
+              </div>
+              <div className="text-sm text-text-sec">
+                {r.milestones.filter(m => m.status === 'concluido').length} / {r.milestones.length} marcos concluídos
+              </div>
+            </Card>
+          ))}
+          {roadmaps.length === 0 && (
+            <Card className="p-8 col-span-full flex flex-col items-center justify-center text-center">
+              <Target size={32} className="text-text-sec mb-3" strokeWidth={1.5} />
+              <p className="text-text-sec">Nenhum roadmap ativo. Comece um na página de Roadmaps!</p>
+            </Card>
+          )}
+        </div>
+      </div>
 
       {/* Productivity Widget */}
       <ProductivityWidget />
