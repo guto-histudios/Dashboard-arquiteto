@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sidebar } from '../layout/Sidebar';
+import { Sidebar } from './Sidebar';
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex min-h-screen bg-bg">
       <Sidebar />
@@ -12,7 +12,4 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
     </div>
   );
-}
-
-
-
+};

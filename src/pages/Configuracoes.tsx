@@ -6,6 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { HorarioFixo, TipoHorarioFixo } from '../types';
 import { getDataStringBrasil } from '../utils/dataUtils';
 import { THEMES } from '../utils/themeUtils';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Textarea } from '../components/ui/Textarea';
 
 export function Configuracoes() {
   const navigate = useNavigate();
@@ -156,33 +160,32 @@ export function Configuracoes() {
   return (
     <div className="space-y-8 pb-20">
       <div className="flex items-center gap-3">
-        <div className="p-3 bg-text-sec/10 rounded-xl">
-          <Settings size={28} className="text-text-main" />
+        <div className="p-3 bg-bg-sec rounded-xl border border-border-subtle">
+          <Settings size={28} className="text-text-main" strokeWidth={1.5} />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">Configurações</h1>
+        <h1 className="text-4xl font-serif font-bold tracking-tight text-text-main">Configurações</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Perfil */}
-        <div className="glass-card p-8">
+        <Card className="p-8">
           <div className="flex justify-between items-center mb-8 border-b border-border-subtle pb-4">
-            <h2 className="text-2xl font-bold tracking-tight">Meu Perfil</h2>
-            <button 
+            <h2 className="text-2xl font-serif font-bold tracking-tight text-text-main">Meu Perfil</h2>
+            <Button 
               onClick={handleSaveProfile}
-              className="btn-primary flex items-center gap-2"
+              className="flex items-center gap-2"
             >
-              <Save size={18} />
+              <Save size={18} strokeWidth={1.5} />
               Salvar
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-5">
             <div>
               <label className="block text-sm font-medium mb-2 text-text-sec">Nome</label>
-              <input 
+              <Input 
                 value={profile.nome} 
                 onChange={(e) => setProfile({ ...profile, nome: e.target.value })} 
-                className="input-modern"
                 placeholder="Seu nome"
               />
             </div>
@@ -190,20 +193,18 @@ export function Configuracoes() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Data de Nascimento</label>
-                <input 
+                <Input 
                   type="date"
                   value={profile.dataNascimento || ''} 
                   onChange={(e) => setProfile({ ...profile, dataNascimento: e.target.value })} 
-                  className="input-modern"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Expectativa de Vida</label>
-                <input 
+                <Input 
                   type="number"
                   value={profile.expectativaVida || 75} 
                   onChange={(e) => setProfile({ ...profile, expectativaVida: Number(e.target.value) })} 
-                  className="input-modern"
                   min="1"
                   max="120"
                 />
@@ -213,21 +214,19 @@ export function Configuracoes() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Hora que Acorda</label>
-                <input 
+                <Input 
                   type="time"
                   value={profile.horaAcordar || '07:00'} 
                   onChange={(e) => setProfile({ ...profile, horaAcordar: e.target.value })} 
-                  className="input-modern"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Hora que Dorme</label>
-                <input 
+                <Input 
                   type="time"
                   value={profile.horaDormir || '23:00'} 
                   onChange={(e) => setProfile({ ...profile, horaDormir: e.target.value })} 
-                  className="input-modern"
                   required
                 />
               </div>
@@ -235,30 +234,28 @@ export function Configuracoes() {
 
             <div>
               <label className="block text-sm font-medium mb-2 text-text-sec">Objetivos Principais</label>
-              <textarea 
+              <Textarea 
                 value={profile.objetivos} 
                 onChange={(e) => setProfile({ ...profile, objetivos: e.target.value })} 
-                className="input-modern min-h-[100px] resize-y"
                 placeholder="Quais são seus maiores objetivos?"
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2 text-text-sec">Rotina Atual</label>
-              <textarea 
+              <Textarea 
                 value={profile.rotina} 
                 onChange={(e) => setProfile({ ...profile, rotina: e.target.value })} 
-                className="input-modern min-h-[100px] resize-y"
                 placeholder="Descreva sua rotina atual..."
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         <div className="space-y-8">
           {/* Theme Settings */}
-          <div className="glass-card p-8">
-            <h2 className="text-2xl font-bold tracking-tight mb-8 border-b border-border-subtle pb-4 flex items-center gap-2">
-              <Palette size={24} className="text-accent-purple" />
+          <Card className="p-8">
+            <h2 className="text-2xl font-serif font-bold tracking-tight mb-8 border-b border-border-subtle pb-4 flex items-center gap-2 text-text-main">
+              <Palette size={24} className="text-accent-purple" strokeWidth={1.5} />
               Aparência
             </h2>
             
@@ -272,7 +269,7 @@ export function Configuracoes() {
                     className={`flex flex-col items-center gap-3 p-4 rounded-xl border transition-all duration-300 ${
                       pomodoroConfig.tema === tema.id 
                         ? 'bg-bg-sec border-accent-purple shadow-lg shadow-accent-purple/20' 
-                        : 'bg-bg-sec/50 border-border-subtle hover:border-text-sec'
+                        : 'bg-bg-main border-border-subtle hover:border-text-muted'
                     }`}
                   >
                     <div className="flex gap-2">
@@ -284,68 +281,64 @@ export function Configuracoes() {
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Pomodoro Settings */}
-          <div className="glass-card p-8">
-            <h2 className="text-2xl font-bold tracking-tight mb-8 border-b border-border-subtle pb-4 flex items-center gap-2">
-              <Clock size={24} className="text-accent-purple" />
+          <Card className="p-8">
+            <h2 className="text-2xl font-serif font-bold tracking-tight mb-8 border-b border-border-subtle pb-4 flex items-center gap-2 text-text-main">
+              <Clock size={24} className="text-accent-purple" strokeWidth={1.5} />
               Pomodoro
             </h2>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Foco (min)</label>
-                <input 
+                <Input 
                   type="number"
                   value={pomodoroConfig.duracaoPomodoro} 
                   onChange={(e) => setPomodoroConfig({ ...pomodoroConfig, duracaoPomodoro: Number(e.target.value) })} 
-                  className="input-modern"
                   min="1"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Pausa Curta (min)</label>
-                <input 
+                <Input 
                   type="number"
                   value={pomodoroConfig.duracaoPausaCurta} 
                   onChange={(e) => setPomodoroConfig({ ...pomodoroConfig, duracaoPausaCurta: Number(e.target.value) })} 
-                  className="input-modern"
                   min="1"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Pausa Longa (min)</label>
-                <input 
+                <Input 
                   type="number"
                   value={pomodoroConfig.duracaoPausaLonga} 
                   onChange={(e) => setPomodoroConfig({ ...pomodoroConfig, duracaoPausaLonga: Number(e.target.value) })} 
-                  className="input-modern"
                   min="1"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2 text-text-sec">Ciclos até Pausa Longa</label>
-                <input 
+                <Input 
                   type="number"
                   value={pomodoroConfig.pomodorosAntesPause} 
                   onChange={(e) => setPomodoroConfig({ ...pomodoroConfig, pomodorosAntesPause: Number(e.target.value) })} 
-                  className="input-modern"
                   min="1"
                 />
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Horários Fixos */}
-          <div className="glass-card p-8">
-            <h2 className="text-2xl font-bold tracking-tight mb-8 border-b border-border-subtle pb-4">Horários Fixos</h2>
+          <Card className="p-8">
+            <h2 className="text-2xl font-serif font-bold tracking-tight mb-8 border-b border-border-subtle pb-4 text-text-main">Horários Fixos</h2>
 
             <div className="space-y-3 mb-8">
               {horariosFixos.map(horario => (
                 <div key={horario.id} className="flex items-center justify-between bg-bg-sec border border-border-subtle p-4 rounded-xl group hover:border-accent-blue/50 transition-colors">
                   <div>
-                    <span className="font-bold text-lg text-white">{horario.horaInicio} {horario.horaFim ? `- ${horario.horaFim}` : ''}</span>
+                    <span className="font-bold text-lg text-text-main">{horario.horaInicio} {horario.horaFim ? `- ${horario.horaFim}` : ''}</span>
                     <p className="text-sm text-text-sec mt-1">{horario.descricao}</p>
                   </div>
                   <div className="flex gap-2">
@@ -353,13 +346,13 @@ export function Configuracoes() {
                       onClick={() => handleEditHorario(horario)}
                       className="text-text-sec hover:text-accent-blue p-2 bg-bg-main rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                     >
-                      <Edit2 size={18} />
+                      <Edit2 size={18} strokeWidth={1.5} />
                     </button>
                     <button 
                       onClick={() => removerHorarioFixo(horario.id)}
                       className="text-text-sec hover:text-error p-2 bg-bg-main rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={18} strokeWidth={1.5} />
                     </button>
                   </div>
                 </div>
@@ -371,14 +364,14 @@ export function Configuracoes() {
 
             <div className="bg-bg-sec border border-border-subtle p-5 rounded-xl">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-white">{editingHorarioId ? 'Editar Horário' : 'Adicionar Novo Horário'}</h3>
+                <h3 className="text-lg font-medium text-text-main">{editingHorarioId ? 'Editar Horário' : 'Adicionar Novo Horário'}</h3>
                 {editingHorarioId && (
                   <button 
                     onClick={() => {
                       setEditingHorarioId(null);
                       setNewHorario({ tipo: 'outro', horaInicio: '', descricao: '' });
                     }}
-                    className="text-sm text-text-sec hover:text-white"
+                    className="text-sm text-text-sec hover:text-text-main"
                   >
                     Cancelar
                   </button>
@@ -387,62 +380,61 @@ export function Configuracoes() {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-xs font-medium mb-1 text-text-sec">Início</label>
-                  <input 
+                  <Input 
                     type="time"
                     value={newHorario.horaInicio} 
                     onChange={(e) => setNewHorario({ ...newHorario, horaInicio: e.target.value })} 
-                    className="input-modern"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1 text-text-sec">Fim (opcional)</label>
-                  <input 
+                  <Input 
                     type="time"
                     value={newHorario.horaFim || ''} 
                     onChange={(e) => setNewHorario({ ...newHorario, horaFim: e.target.value })} 
-                    className="input-modern"
                   />
                 </div>
               </div>
               <div className="mb-5">
                 <label className="block text-xs font-medium mb-1 text-text-sec">Descrição</label>
-                <input 
+                <Input 
                   value={newHorario.descricao} 
                   onChange={(e) => setNewHorario({ ...newHorario, descricao: e.target.value })} 
-                  className="input-modern"
                   placeholder="Ex: Academia, Almoço, Reunião Diária"
                 />
               </div>
-              <button 
+              <Button 
                 onClick={handleAddHorario}
-                className="w-full bg-bg-main border border-border-subtle hover:bg-border-subtle hover:text-white text-text-main px-4 py-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 font-medium"
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
               >
-                <Plus size={18} />
+                <Plus size={18} strokeWidth={1.5} />
                 Adicionar Horário
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
 
           {/* Reset System */}
-          <div className="glass-card p-8 border-t-4 border-error">
-            <h2 className="text-2xl font-bold tracking-tight mb-6 flex items-center gap-2 text-error">
-              <AlertTriangle size={24} />
+          <Card className="p-8 border-t-4 border-error">
+            <h2 className="text-2xl font-serif font-bold tracking-tight mb-6 flex items-center gap-2 text-error">
+              <AlertTriangle size={24} strokeWidth={1.5} />
               Zona de Perigo
             </h2>
             
             <div className="space-y-4">
               <div className="bg-bg-sec border border-border-subtle p-5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h3 className="font-bold text-white mb-1">Reset Rápido (Hoje)</h3>
+                  <h3 className="font-bold text-text-main mb-1">Reset Rápido (Hoje)</h3>
                   <p className="text-sm text-text-sec">Reseta apenas as tarefas e hábitos concluídos do dia atual.</p>
                 </div>
-                <button 
+                <Button 
                   onClick={handleQuickReset}
-                  className="bg-bg-main border border-border-subtle text-text-main hover:bg-border-subtle hover:text-white px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-colors"
+                  variant="outline"
+                  className="flex items-center gap-2 whitespace-nowrap"
                 >
-                  <RefreshCw size={16} />
+                  <RefreshCw size={16} strokeWidth={1.5} />
                   Reset Rápido
-                </button>
+                </Button>
               </div>
 
               <div className="bg-error/10 border border-error/20 p-5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -454,12 +446,12 @@ export function Configuracoes() {
                   onClick={() => setIsResetModalOpen(true)}
                   className="bg-error text-white hover:bg-error/80 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap transition-colors shadow-lg shadow-error/20"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={16} strokeWidth={1.5} />
                   Resetar Sistema
                 </button>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
@@ -469,20 +461,21 @@ export function Configuracoes() {
           <div className="bg-bg-sec border border-error/30 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl shadow-error/10 animate-slide-up">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle size={32} className="text-error" />
+                <AlertTriangle size={32} className="text-error" strokeWidth={1.5} />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Isso vai apagar TUDO. Continuar?</h2>
+              <h2 className="text-2xl font-serif font-bold text-text-main mb-2">Isso vai apagar TUDO. Continuar?</h2>
               <p className="text-text-sec mb-6">
                 Esta ação irá apagar permanentemente suas tasks, hábitos, metas, KPIs, XP, nível, moedas e badges. Você voltará para a tela inicial.
               </p>
               
               <div className="flex gap-3">
-                <button 
+                <Button 
                   onClick={() => setIsResetModalOpen(false)}
-                  className="flex-1 bg-bg-main border border-border-subtle text-text-main hover:bg-border-subtle px-4 py-3 rounded-xl font-medium transition-colors"
+                  variant="outline"
+                  className="flex-1"
                 >
                   Cancelar
-                </button>
+                </Button>
                 <button 
                   onClick={handleFullReset}
                   className="flex-1 bg-error text-white hover:bg-error/90 px-4 py-3 rounded-xl font-medium transition-colors shadow-lg shadow-error/20"

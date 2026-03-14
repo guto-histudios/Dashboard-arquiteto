@@ -57,7 +57,7 @@ export function AIHabitGenerator({ isOpen, onClose }: AIHabitGeneratorProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-bg-primary border border-border-subtle rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-bg-main border border-border-subtle rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         <div className="flex justify-between items-center p-6 border-b border-border-subtle bg-bg-sec/50">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-accent-purple/10 rounded-lg">
@@ -65,7 +65,7 @@ export function AIHabitGenerator({ isOpen, onClose }: AIHabitGeneratorProps) {
             </div>
             <h2 className="text-2xl font-bold">Gerador de Hábitos com IA</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-bg-tertiary rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-bg-sec rounded-full transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -120,13 +120,13 @@ export function AIHabitGenerator({ isOpen, onClose }: AIHabitGeneratorProps) {
                       <div>
                         <h4 className="text-lg font-bold text-white mb-1">{sug.nome}</h4>
                         <div className="flex flex-wrap gap-2 mb-3">
-                          <span className="text-xs font-medium px-2 py-1 bg-bg-tertiary rounded-md text-text-sec">
+                          <span className="text-xs font-medium px-2 py-1 bg-bg-sec rounded-md text-text-sec">
                             {sug.frequencia === 'diaria' ? 'Diário' : 'Dias específicos'}
                           </span>
-                          <span className="text-xs font-medium px-2 py-1 bg-bg-tertiary rounded-md text-text-sec">
+                          <span className="text-xs font-medium px-2 py-1 bg-bg-sec rounded-md text-text-sec">
                             {sug.horario}
                           </span>
-                          <span className="text-xs font-medium px-2 py-1 bg-bg-tertiary rounded-md text-text-sec">
+                          <span className="text-xs font-medium px-2 py-1 bg-bg-sec rounded-md text-text-sec">
                             {sug.duracaoEstimada} min
                           </span>
                           <span className="text-xs font-medium px-2 py-1 bg-accent-purple/10 text-accent-purple rounded-md capitalize">
@@ -148,7 +148,7 @@ export function AIHabitGenerator({ isOpen, onClose }: AIHabitGeneratorProps) {
                         </button>
                         <button
                           onClick={() => handleReject(sug.id)}
-                          className="flex items-center justify-center gap-2 bg-bg-tertiary text-text-sec hover:bg-error/10 hover:text-error px-4 py-2 rounded-lg transition-colors font-medium text-sm"
+                          className="flex items-center justify-center gap-2 bg-bg-sec text-text-sec hover:bg-error/10 hover:text-error px-4 py-2 rounded-lg transition-colors font-medium text-sm"
                         >
                           <X size={16} />
                           Recusar

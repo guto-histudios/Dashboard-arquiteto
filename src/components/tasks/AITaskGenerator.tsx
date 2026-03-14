@@ -33,7 +33,8 @@ export function AITaskGenerator() {
 
   const handleAcceptAll = () => {
     suggestedTasks.forEach(task => {
-      adicionarTask(task);
+      const success = adicionarTask(task);
+      if (!success) return;
       
       // If linked to a meta, update the meta
       if (task.metaVinculada) {
@@ -49,7 +50,9 @@ export function AITaskGenerator() {
   };
 
   const handleAcceptSingle = (task: Task) => {
-    adicionarTask(task);
+    const success = adicionarTask(task);
+    if (!success) return;
+    
     if (task.metaVinculada) {
       const meta = metas.find(m => m.id === task.metaVinculada);
       if (meta) {

@@ -9,6 +9,8 @@ import { ptBR } from 'date-fns/locale';
 import { BarChart2, CheckSquare, Calendar, Target, Activity, Download, FileText, Database } from 'lucide-react';
 import { getDataStringBrasil, deveMostrarTask } from '../utils/dataUtils';
 import { generatePDFReport, exportDataJSON } from '../utils/exportUtils';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
 
@@ -154,7 +156,7 @@ export function Analytics() {
     if (active && payload && payload.length) {
       return (
         <div className="bg-bg-sec border border-border-subtle p-3 rounded-xl shadow-xl">
-          <p className="text-white font-bold mb-2">{label}</p>
+          <p className="text-text-main font-bold mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color || entry.payload.fill }} className="text-sm">
               {entry.name}: {entry.value}
@@ -171,142 +173,145 @@ export function Analytics() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-accent-blue/10 rounded-xl">
-            <BarChart2 size={28} className="text-accent-blue" />
+            <BarChart2 size={28} className="text-accent-blue" strokeWidth={1.5} />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">Analytics</h1>
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-text-main">Analytics</h1>
         </div>
         
         <div className="flex flex-wrap gap-2">
-          <button 
+          <Button 
             onClick={() => handleExportPDF('semanal')}
-            className="bg-bg-sec border border-accent-blue/30 text-accent-blue hover:bg-accent-blue hover:text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 text-sm font-medium"
+            variant="outline"
+            className="flex items-center gap-2"
           >
-            <FileText size={16} />
+            <FileText size={16} strokeWidth={1.5} />
             Exportar Semana
-          </button>
-          <button 
+          </Button>
+          <Button 
             onClick={() => handleExportPDF('mensal')}
-            className="bg-bg-sec border border-accent-purple/30 text-accent-purple hover:bg-accent-purple hover:text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 text-sm font-medium"
+            variant="outline"
+            className="flex items-center gap-2"
           >
-            <FileText size={16} />
+            <FileText size={16} strokeWidth={1.5} />
             Exportar Mês
-          </button>
-          <button 
+          </Button>
+          <Button 
             onClick={handleExportJSON}
-            className="bg-bg-sec border border-border-subtle text-text-main hover:bg-border-subtle hover:text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 text-sm font-medium"
+            variant="outline"
+            className="flex items-center gap-2"
           >
-            <Database size={16} />
+            <Database size={16} strokeWidth={1.5} />
             Baixar Dados
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* SEÇÃO 1: OVERVIEW DO DIA */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-5 flex flex-col justify-between border-t-2 border-t-accent-blue">
+        <Card className="p-5 flex flex-col justify-between border-t-2 border-t-accent-blue">
           <div className="flex items-center gap-2 text-text-sec mb-2">
-            <CheckSquare size={16} />
+            <CheckSquare size={16} strokeWidth={1.5} />
             <span className="text-sm font-medium uppercase tracking-wider">Tasks Hoje</span>
           </div>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-bold text-white">{overviewMetrics.taxaTasks}%</span>
+            <span className="text-4xl font-serif font-bold text-text-main">{overviewMetrics.taxaTasks}%</span>
           </div>
-          <div className="w-full bg-bg-sec h-1.5 rounded-full mt-3 overflow-hidden">
+          <div className="w-full bg-bg-main h-1.5 rounded-full mt-3 overflow-hidden">
             <div className="bg-accent-blue h-full rounded-full" style={{ width: `${overviewMetrics.taxaTasks}%` }}></div>
           </div>
-        </div>
+        </Card>
 
-        <div className="glass-card p-5 flex flex-col justify-between border-t-2 border-t-success">
+        <Card className="p-5 flex flex-col justify-between border-t-2 border-t-success">
           <div className="flex items-center gap-2 text-text-sec mb-2">
-            <Calendar size={16} />
+            <Calendar size={16} strokeWidth={1.5} />
             <span className="text-sm font-medium uppercase tracking-wider">Hábitos Hoje</span>
           </div>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-bold text-white">{overviewMetrics.taxaHabitos}%</span>
+            <span className="text-4xl font-serif font-bold text-text-main">{overviewMetrics.taxaHabitos}%</span>
           </div>
-          <div className="w-full bg-bg-sec h-1.5 rounded-full mt-3 overflow-hidden">
+          <div className="w-full bg-bg-main h-1.5 rounded-full mt-3 overflow-hidden">
             <div className="bg-success h-full rounded-full" style={{ width: `${overviewMetrics.taxaHabitos}%` }}></div>
           </div>
-        </div>
+        </Card>
 
-        <div className="glass-card p-5 flex flex-col justify-between border-t-2 border-t-accent-purple">
+        <Card className="p-5 flex flex-col justify-between border-t-2 border-t-accent-purple">
           <div className="flex items-center gap-2 text-text-sec mb-2">
-            <Target size={16} />
+            <Target size={16} strokeWidth={1.5} />
             <span className="text-sm font-medium uppercase tracking-wider">Metas (Média)</span>
           </div>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-bold text-white">{overviewMetrics.progressoMetas}%</span>
+            <span className="text-4xl font-serif font-bold text-text-main">{overviewMetrics.progressoMetas}%</span>
           </div>
-          <div className="w-full bg-bg-sec h-1.5 rounded-full mt-3 overflow-hidden">
+          <div className="w-full bg-bg-main h-1.5 rounded-full mt-3 overflow-hidden">
             <div className="bg-accent-purple h-full rounded-full" style={{ width: `${overviewMetrics.progressoMetas}%` }}></div>
           </div>
-        </div>
+        </Card>
 
-        <div className="glass-card p-5 flex flex-col justify-between border-t-2 border-t-warning">
+        <Card className="p-5 flex flex-col justify-between border-t-2 border-t-warning">
           <div className="flex items-center gap-2 text-text-sec mb-2">
-            <Activity size={16} />
+            <Activity size={16} strokeWidth={1.5} />
             <span className="text-sm font-medium uppercase tracking-wider">KPIs (Média)</span>
           </div>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-bold text-white">{overviewMetrics.progressoKPIs}%</span>
+            <span className="text-4xl font-serif font-bold text-text-main">{overviewMetrics.progressoKPIs}%</span>
           </div>
-          <div className="w-full bg-bg-sec h-1.5 rounded-full mt-3 overflow-hidden">
+          <div className="w-full bg-bg-main h-1.5 rounded-full mt-3 overflow-hidden">
             <div className="bg-warning h-full rounded-full" style={{ width: `${overviewMetrics.progressoKPIs}%` }}></div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* SEÇÃO 2 & 3: TASKS E HÁBITOS (HISTÓRICO) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <CheckSquare size={20} className="text-accent-blue" />
+        <Card className="p-6">
+          <h2 className="text-xl font-serif font-bold text-text-main mb-6 flex items-center gap-2">
+            <CheckSquare size={20} className="text-accent-blue" strokeWidth={1.5} />
             Evolução de Tasks (7 dias)
           </h2>
           <div className="h-72 min-h-[288px]">
             {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} className="dark:stroke-zinc-800" />
                   <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <RechartsTooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ paddingTop: '20px' }} />
                   <Bar dataKey="Tarefas" name="Concluídas" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
-                  <Bar dataKey="TotalTarefas" name="Total" fill="#374151" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="TotalTarefas" name="Total" fill="#a1a1aa" radius={[4, 4, 0, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </Card>
 
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Calendar size={20} className="text-success" />
+        <Card className="p-6">
+          <h2 className="text-xl font-serif font-bold text-text-main mb-6 flex items-center gap-2">
+            <Calendar size={20} className="text-success" strokeWidth={1.5} />
             Consistência de Hábitos (%)
           </h2>
           <div className="h-72 min-h-[288px]">
             {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} className="dark:stroke-zinc-800" />
                   <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} domain={[0, 100]} />
                   <RechartsTooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="Habitos" name="Conclusão (%)" stroke="#10b981" strokeWidth={3} dot={{ fill: '#1a1a1a', stroke: '#10b981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10b981' }} />
+                  <Line type="monotone" dataKey="Habitos" name="Conclusão (%)" stroke="#10b981" strokeWidth={3} dot={{ fill: '#fafafa', stroke: '#10b981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10b981' }} className="dark:dot-fill-zinc-900" />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* SEÇÃO 4: METAS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Target size={20} className="text-accent-purple" />
+        <Card className="p-6">
+          <h2 className="text-xl font-serif font-bold text-text-main mb-6 flex items-center gap-2">
+            <Target size={20} className="text-accent-purple" strokeWidth={1.5} />
             Status das Metas
           </h2>
           <div className="h-72 min-h-[288px] flex items-center justify-center">
@@ -337,18 +342,18 @@ export function Analytics() {
               <p className="text-text-sec">Nenhuma meta cadastrada.</p>
             )}
           </div>
-        </div>
+        </Card>
 
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Target size={20} className="text-accent-purple" />
+        <Card className="p-6">
+          <h2 className="text-xl font-serif font-bold text-text-main mb-6 flex items-center gap-2">
+            <Target size={20} className="text-accent-purple" strokeWidth={1.5} />
             Metas por Período
           </h2>
           <div className="h-72 min-h-[288px]">
             {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={metasBarData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} className="dark:stroke-zinc-800" />
                   <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <RechartsTooltip content={<CustomTooltip />} />
@@ -361,14 +366,14 @@ export function Analytics() {
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* SEÇÃO 5: KPIS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Activity size={20} className="text-warning" />
+        <Card className="p-6">
+          <h2 className="text-xl font-serif font-bold text-text-main mb-6 flex items-center gap-2">
+            <Activity size={20} className="text-warning" strokeWidth={1.5} />
             Progresso dos KPIs (Top 3)
           </h2>
           <div className="h-72 min-h-[288px] flex items-center justify-center">
@@ -388,7 +393,7 @@ export function Analytics() {
                     <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
                     <RadialBar
                       minAngle={15}
-                      background={{ fill: '#333' }}
+                      background={{ fill: '#e4e4e7' }}
                       clockWise
                       dataKey="value"
                       cornerRadius={10}
@@ -402,29 +407,29 @@ export function Analytics() {
               <p className="text-text-sec">Nenhum KPI cadastrado.</p>
             )}
           </div>
-        </div>
+        </Card>
 
-        <div className="glass-card p-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Activity size={20} className="text-warning" />
+        <Card className="p-6">
+          <h2 className="text-xl font-serif font-bold text-text-main mb-6 flex items-center gap-2">
+            <Activity size={20} className="text-warning" strokeWidth={1.5} />
             KPIs: Atual vs Meta
           </h2>
           <div className="h-72 min-h-[288px]">
             {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={kpiBarData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} className="dark:stroke-zinc-800" />
                   <XAxis dataKey="name" stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <YAxis stroke="#a1a1aa" tick={{ fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <RechartsTooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="Atual" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#1a1a1a', stroke: '#f59e0b', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#f59e0b' }} />
-                  <Line type="monotone" dataKey="Meta" stroke="#6b7280" strokeDasharray="5 5" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Atual" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#fafafa', stroke: '#f59e0b', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#f59e0b' }} className="dark:dot-fill-zinc-900" />
+                  <Line type="monotone" dataKey="Meta" stroke="#a1a1aa" strokeDasharray="5 5" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export function PlanoTrimestralWidget() {
   const progresso = Math.max(0, Math.min(100, ((90 - diasRestantes) / 90) * 100));
 
   return (
-    <div className="bg-bg-sec rounded-2xl p-6 border border-border-main shadow-lg relative overflow-hidden group">
+    <div className="bg-bg-sec rounded-2xl p-6 border border-border-subtle shadow-lg relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-32 h-32 bg-accent-blue/5 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-110"></div>
       
       <div className="flex justify-between items-start mb-4">

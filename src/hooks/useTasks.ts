@@ -105,8 +105,81 @@ export function useTasks() {
     }
   }, [tasks, carregando]);
 
-  const adicionarTask = (novaTask: Task) => {
+  const adicionarTask = (novaTask: Task): boolean => {
+    const taskAlreadyExists = () => {
+      return tasks.some(t => 
+        t.titulo === novaTask.titulo && 
+        t.data === novaTask.data && 
+        t.horarioInicio === novaTask.horarioInicio
+      );
+    };
+
+    if (taskAlreadyExists()) {
+      console.warn('Task already exists, skipping creation.');
+      return false;
+    }
+
+    const findNextFreeSlot = (task: Task): string | null => {
+      if (!task.horarioInicio || !task.duracao) return null;
+      
+      let [h, m] = task.horarioInicio.split(':').map(Number);
+      let startMins = h * 60 + m;
+      
+      while (startMins + task.duracao <= 24 * 60) {
+        const endMins = startMins + task.duracao;
+        
+        const hasConflict = tasks.some(t => {
+          if (t.status === 'cancelada' || t.status === 'concluida' || t.data !== task.data || !t.horarioInicio || !t.duracao) return false;
+          
+          const [th, tm] = t.horarioInicio.split(':').map(Number);
+          const tStartMins = th * 60 + tm;
+          const tEndMins = tStartMins + t.duracao;
+          
+          return (startMins < tEndMins && endMins > tStartMins);
+        });
+        
+        if (!hasConflict) {
+          const resH = Math.floor(startMins / 60);
+          const resM = startMins % 60;
+          return `${String(resH).padStart(2, '0')}:${String(resM).padStart(2, '0')}`;
+        }
+        
+        startMins += 15;
+      }
+      return null;
+    };
+
+    if (novaTask.horarioInicio && novaTask.duracao) {
+      const nextFreeSlot = findNextFreeSlot(novaTask);
+      if (nextFreeSlot && nextFreeSlot !== novaTask.horarioInicio) {
+        novaTask.horarioInicio = nextFreeSlot;
+        if (novaTask.horarioFim) {
+           const [h, m] = nextFreeSlot.split(':').map(Number);
+           const endMins = h * 60 + m + novaTask.duracao;
+           novaTask.horarioFim = `${String(Math.floor(endMins / 60) % 24).padStart(2, '0')}:${String(endMins % 60).padStart(2, '0')}`;
+        }
+        alert(`Conflito de horário resolvido: a tarefa "${novaTask.titulo}" foi movida para ${nextFreeSlot}.`);
+      } else if (!nextFreeSlot && findNextFreeSlot(novaTask) === null) {
+        // If it returned null because of no free slots (and not because missing horarioInicio/duracao)
+        const hasConflict = tasks.some(t => {
+          if (t.status === 'cancelada' || t.status === 'concluida' || t.data !== novaTask.data || !t.horarioInicio || !t.duracao) return false;
+          const [th, tm] = t.horarioInicio.split(':').map(Number);
+          const tStartMins = th * 60 + tm;
+          const tEndMins = tStartMins + t.duracao;
+          const [nh, nm] = novaTask.horarioInicio!.split(':').map(Number);
+          const startMins = nh * 60 + nm;
+          const endMins = startMins + novaTask.duracao;
+          return (startMins < tEndMins && endMins > tStartMins);
+        });
+        if (hasConflict) {
+          alert(`Conflito de horário: a tarefa "${novaTask.titulo}" não pôde ser criada porque não há horários livres.`);
+          return false;
+        }
+      }
+    }
+
     setTasks(prev => [...prev, novaTask]);
+    return true;
   };
 
   const atualizarTask = (id: string, updates: Partial<Task>) => {

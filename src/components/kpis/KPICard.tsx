@@ -45,18 +45,13 @@ export const KPICard: React.FC<KPICardProps> = ({ kpi, onUpdate, onEdit, onDelet
   }));
 
   return (
-    <div className="glass-card p-6 relative group hover:border-accent-blue/30 transition-all duration-300">
+    <div className="card p-6 relative group hover:border-primary transition-all duration-300">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="font-semibold text-lg tracking-tight flex items-center gap-2">
+          <h3 className="font-serif text-[22px] font-semibold text-text-main tracking-tight flex items-center gap-2">
             {kpi.titulo}
-            {isAutomatic && (
-              <span className="text-[10px] bg-accent-purple/20 text-accent-purple px-2 py-0.5 rounded-full border border-accent-purple/30 flex items-center gap-1">
-                <Activity size={10} /> Auto
-              </span>
-            )}
           </h3>
-          <p className="text-xs text-text-sec mt-1 capitalize">{kpi.frequencia}</p>
+          <p className="text-[14px] text-text-sec mt-1 capitalize">{kpi.frequencia}</p>
         </div>
         
         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -67,14 +62,14 @@ export const KPICard: React.FC<KPICardProps> = ({ kpi, onUpdate, onEdit, onDelet
                 <button onClick={handleCancel} className="text-error hover:text-red-400 transition-colors p-1.5 bg-error/10 rounded-lg"><X size={16} /></button>
               </>
             ) : (
-              <button onClick={() => setIsEditing(true)} className="text-text-sec hover:text-white transition-colors p-1.5 bg-bg-sec rounded-lg border border-border-subtle"><Edit2 size={16} /></button>
+              <button onClick={() => setIsEditing(true)} className="text-text-sec hover:text-text-main transition-colors p-1.5 bg-bg-sec rounded-lg border border-border-subtle"><Edit2 size={16} /></button>
             )
           ) : (
             <div className="p-1.5 text-text-sec/50 cursor-not-allowed" title="Atualizado automaticamente">
               <Lock size={16} />
             </div>
           )}
-          <button onClick={() => onEdit(kpi)} className="text-accent-blue hover:text-blue-400 transition-colors p-1.5 bg-accent-blue/10 rounded-lg"><Edit2 size={16} /></button>
+          <button onClick={() => onEdit(kpi)} className="text-accent hover:text-amber-400 transition-colors p-1.5 bg-accent/10 rounded-lg"><Edit2 size={16} /></button>
           <button onClick={() => onDelete(kpi.id)} className="text-error hover:text-red-400 transition-colors p-1.5 bg-error/10 rounded-lg"><X size={16} /></button>
         </div>
       </div>
@@ -85,18 +80,18 @@ export const KPICard: React.FC<KPICardProps> = ({ kpi, onUpdate, onEdit, onDelet
             type="number" 
             value={newValue} 
             onChange={(e) => setNewValue(Number(e.target.value))} 
-            className="input-modern w-32 text-2xl font-bold py-1 px-2"
+            className="bg-bg-sec border border-border-subtle rounded-[10px] h-[48px] px-4 py-3.5 w-32 text-[24px] font-bold text-text-main"
             autoFocus
           />
         ) : (
-          <span className="text-4xl font-bold bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent">
+          <span className="text-[24px] font-bold text-text-main">
             {kpi.valorAtual}
           </span>
         )}
         <div className="mb-1.5 flex flex-col">
-          <span className="text-text-sec text-xs font-medium uppercase tracking-wider">Meta: {kpi.valorMeta} {kpi.unidade}</span>
+          <span className="text-text-sec text-[14px] font-medium uppercase tracking-wider">Meta: {kpi.valorMeta} {kpi.unidade}</span>
           {history.length > 1 && (
-            <span className={clsx("text-xs flex items-center gap-1", trend >= 0 ? "text-success" : "text-error")}>
+            <span className={clsx("text-[14px] flex items-center gap-1", trend >= 0 ? "text-success" : "text-error")}>
               {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
               {Math.abs(Number(trendPercent))}%
             </span>
@@ -106,7 +101,7 @@ export const KPICard: React.FC<KPICardProps> = ({ kpi, onUpdate, onEdit, onDelet
 
       <div className="w-full bg-bg-sec rounded-full h-2 border border-border-subtle overflow-hidden mb-4">
         <div 
-          className="bg-gradient-to-r from-accent-blue to-accent-purple h-full rounded-full transition-all duration-1000 ease-out relative" 
+          className="bg-theme-primary h-full rounded-full transition-all duration-1000 ease-out relative" 
           style={{ width: `${progress}%` }}
         >
           <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
@@ -121,19 +116,19 @@ export const KPICard: React.FC<KPICardProps> = ({ kpi, onUpdate, onEdit, onDelet
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--color-theme-primary)" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="var(--color-theme-primary)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e1e2e', borderColor: '#3f3f46', borderRadius: '8px', fontSize: '12px' }}
-                  itemStyle={{ color: '#fff' }}
-                  cursor={{ stroke: '#8b5cf6', strokeWidth: 1 }}
+                  contentStyle={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-border-subtle)', borderRadius: '8px', fontSize: '12px' }}
+                  itemStyle={{ color: 'var(--color-text-main)' }}
+                  cursor={{ stroke: 'var(--color-theme-primary)', strokeWidth: 1 }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="valor" 
-                  stroke="#8b5cf6" 
+                  stroke="var(--color-theme-primary)" 
                   fillOpacity={1} 
                   fill={`url(#gradient-${kpi.id})`} 
                   strokeWidth={2}

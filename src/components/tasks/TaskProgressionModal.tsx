@@ -92,7 +92,11 @@ export function TaskProgressionModal() {
         id: newTaskId,
       } as Task;
       
-      adicionarTask(newTask);
+      const success = adicionarTask(newTask);
+      if (!success) {
+        handleClose();
+        return;
+      }
 
       // If linked to a meta, update the meta to include this new task
       if (newTask.metaVinculada) {

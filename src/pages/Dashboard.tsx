@@ -14,6 +14,8 @@ import { AITaskGenerator } from '../components/tasks/AITaskGenerator';
 import { getDataStringBrasil, formatarData, deveMostrarTask } from '../utils/dataUtils';
 import { AlertTriangle, CheckCircle, Calendar, Target, Activity, Trophy, Star, Flame, Zap, Briefcase, Award, Crown, Shield, Mountain, Sun, Flag, TrendingUp, ChevronUp, ChevronsUp, Sunrise, Moon, Clock, Focus, Wind, Infinity as InfinityIcon } from 'lucide-react';
 import { BadgeInfo } from '../types';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 
 export function Dashboard() {
   const { tasks, habitos, kpis, mudarStatus, toggleConclusaoHabito, atualizarKPI, calcularProgressoHabitos, config, userProfile, gamification, getLevelInfo, badgesInfo } = useApp();
@@ -83,16 +85,16 @@ export function Dashboard() {
     <div className="space-y-10 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight mb-1">Dashboard</h1>
+          <h1 className="text-4xl font-serif font-bold tracking-tight mb-1 text-text-main">Dashboard</h1>
           <p className="text-text-sec font-medium">{formatarData(hoje, "EEEE, d 'de' MMMM 'de' yyyy")}</p>
         </div>
-        <button 
+        <Button 
           onClick={() => setIsImprevistoOpen(true)}
-          className="bg-bg-card border border-error/30 text-error hover:bg-error hover:text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg transition-all duration-200 hover:brightness-110 active:scale-95 group"
+          className="bg-bg-sec border border-error/30 text-error hover:bg-error hover:text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition-all duration-200 hover:brightness-110 active:scale-95 group"
         >
-          <AlertTriangle size={20} className="group-hover:animate-pulse" />
+          <AlertTriangle size={20} className="group-hover:animate-pulse" strokeWidth={1.5} />
           <span className="font-medium">Alerta de Imprevisto</span>
-        </button>
+        </Button>
       </div>
 
       {userProfile?.dataNascimento && userProfile?.expectativaVida && (
@@ -117,7 +119,7 @@ export function Dashboard() {
       <AITaskGenerator />
 
       {/* Gamification Section */}
-      <div className="card p-6 relative overflow-hidden">
+      <Card className="relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-accent-purple/10 to-transparent rounded-bl-full -z-10"></div>
         <div className="flex flex-col md:flex-row gap-8 items-center">
           
@@ -194,17 +196,17 @@ export function Dashboard() {
           </div>
 
         </div>
-      </div>
+      </Card>
 
       {/* Resumo do Dia e Citação */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-card p-6 relative overflow-hidden group">
+          <Card className="relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent-blue/5 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-110"></div>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-text-sec font-medium">Tarefas Concluídas</h3>
               <div className="p-2 bg-accent-blue/10 rounded-lg">
-                <CheckCircle className="text-accent-blue" size={24} />
+                <CheckCircle className="text-accent-blue" size={24} strokeWidth={1.5} />
               </div>
             </div>
             <div className="text-4xl font-bold mb-2">
@@ -213,33 +215,33 @@ export function Dashboard() {
             <div className="w-full bg-bg-sec rounded-full h-2 border border-border-subtle overflow-hidden">
               <div className="bg-gradient-to-r from-accent-blue to-accent-purple h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${(tasksConcluidas / Math.max(tasksDoDia.length, 1)) * 100}%` }}></div>
             </div>
-          </div>
+          </Card>
 
-          <div className="glass-card p-6 relative overflow-hidden group">
+          <Card className="relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-110"></div>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-text-sec font-medium">Hábitos</h3>
               <div className="p-2 bg-success/10 rounded-lg">
-                <Calendar className="text-success" size={24} />
+                <Calendar className="text-success" size={24} strokeWidth={1.5} />
               </div>
             </div>
             <div className="text-4xl font-bold mb-2">{Math.round(progressoHabitos)}%</div>
             <div className="w-full bg-bg-sec rounded-full h-2 border border-border-subtle overflow-hidden">
               <div className="bg-gradient-to-r from-success to-emerald-400 h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressoHabitos}%` }}></div>
             </div>
-          </div>
+          </Card>
 
-          <div className="glass-card p-6 relative overflow-hidden group">
+          <Card className="relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent-purple/5 rounded-bl-full -z-10 transition-transform duration-500 group-hover:scale-110"></div>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-text-sec font-medium">Foco (Pomodoro)</h3>
               <div className="p-2 bg-accent-purple/10 rounded-lg">
-                <Target className="text-accent-purple" size={24} />
+                <Target className="text-accent-purple" size={24} strokeWidth={1.5} />
               </div>
             </div>
             <div className="text-4xl font-bold mb-2">{minutosFoco} <span className="text-text-sec text-xl font-medium">min</span></div>
             <p className="text-sm text-text-sec font-medium mt-2">{pomodorosHoje} ciclos concluídos</p>
-          </div>
+          </Card>
         </div>
         
         <div className="lg:col-span-1">
@@ -250,9 +252,9 @@ export function Dashboard() {
       {/* Tasks e Hábitos */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-6">
-          <h2 className="text-2xl font-bold flex items-center gap-3 tracking-tight">
+          <h2 className="text-2xl font-serif font-bold flex items-center gap-3 tracking-tight text-text-main">
             <div className="p-2 bg-accent-blue/10 rounded-lg">
-              <CheckCircle size={24} className="text-accent-blue" />
+              <CheckCircle size={24} className="text-accent-blue" strokeWidth={1.5} />
             </div>
             Tarefas de Hoje
           </h2>
@@ -262,22 +264,22 @@ export function Dashboard() {
                 <TaskCard key={task.id} task={task} onStatusChange={mudarStatus} />
               ))
             ) : (
-              <div className="col-span-2 glass-card p-12 flex flex-col items-center justify-center text-center">
+              <Card className="col-span-2 p-12 flex flex-col items-center justify-center text-center">
                 <div className="w-16 h-16 bg-bg-sec rounded-full flex items-center justify-center mb-4 border border-border-subtle">
-                  <CheckCircle size={32} className="text-text-sec" />
+                  <CheckCircle size={32} className="text-text-sec" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-lg font-medium mb-2">Tudo limpo por aqui</h3>
+                <h3 className="text-lg font-serif font-medium mb-2 text-text-main">Tudo limpo por aqui</h3>
                 <p className="text-text-sec">Nenhuma tarefa para hoje. Aproveite o dia!</p>
-              </div>
+              </Card>
             )}
           </div>
         </div>
 
         <div className="space-y-10">
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-3 tracking-tight">
+            <h2 className="text-2xl font-serif font-bold flex items-center gap-3 tracking-tight text-text-main">
               <div className="p-2 bg-success/10 rounded-lg">
-                <Calendar size={24} className="text-success" />
+                <Calendar size={24} className="text-success" strokeWidth={1.5} />
               </div>
               Hábitos Diários
             </h2>
@@ -287,18 +289,18 @@ export function Dashboard() {
                   <HabitoCard key={habito.id} habito={habito} onToggle={toggleConclusaoHabito} />
                 ))
               ) : (
-                <div className="glass-card p-8 flex flex-col items-center justify-center text-center">
-                  <Calendar size={32} className="text-text-sec mb-3" />
+                <Card className="p-8 flex flex-col items-center justify-center text-center">
+                  <Calendar size={32} className="text-text-sec mb-3" strokeWidth={1.5} />
                   <p className="text-text-sec">Nenhum hábito para hoje.</p>
-                </div>
+                </Card>
               )}
             </div>
           </div>
 
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-3 tracking-tight">
+            <h2 className="text-2xl font-serif font-bold flex items-center gap-3 tracking-tight text-text-main">
               <div className="p-2 bg-accent-purple/10 rounded-lg">
-                <Activity size={24} className="text-accent-purple" />
+                <Activity size={24} className="text-accent-purple" strokeWidth={1.5} />
               </div>
               KPIs Principais
             </h2>
@@ -307,10 +309,10 @@ export function Dashboard() {
                 <KPICard key={kpi.id} kpi={kpi} onUpdate={atualizarKPI} />
               ))}
               {kpis.length === 0 && (
-                <div className="glass-card p-8 flex flex-col items-center justify-center text-center">
-                  <Activity size={32} className="text-text-sec mb-3" />
+                <Card className="p-8 flex flex-col items-center justify-center text-center">
+                  <Activity size={32} className="text-text-sec mb-3" strokeWidth={1.5} />
                   <p className="text-text-sec">Nenhum KPI definido.</p>
-                </div>
+                </Card>
               )}
             </div>
           </div>

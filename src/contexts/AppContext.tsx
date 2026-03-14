@@ -19,7 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 interface AppContextData {
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
-  adicionarTask: (task: Task) => void;
+  adicionarTask: (task: Task) => boolean;
   atualizarTask: (id: string, updates: Partial<Task>) => void;
   removerTask: (id: string) => void;
   mudarStatus: (id: string, status: TaskStatus) => void;

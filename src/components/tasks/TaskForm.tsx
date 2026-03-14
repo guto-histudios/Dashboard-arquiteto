@@ -8,7 +8,7 @@ import { useApp } from '../../contexts/AppContext';
 interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: Task) => void;
+  onSave: (task: Task) => boolean | void;
   initialTask?: Task;
 }
 
@@ -198,7 +198,10 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
       kpiVinculado: kpiVinculado || undefined,
       metaVinculada: metaVinculada || undefined,
     };
-    onSave(newTask);
+    const success = onSave(newTask);
+    if (success === false) {
+      return;
+    }
     onClose();
     // Reset form
     setTitulo('');
@@ -302,7 +305,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
                 type="checkbox" 
                 checked={horarioFixo}
                 onChange={(e) => setHorarioFixo(e.target.checked)}
-                className="w-4 h-4 rounded border-border-subtle bg-bg-main text-accent-blue focus:ring-accent-blue focus:ring-offset-bg-card"
+                className="w-4 h-4 rounded border-border-subtle bg-bg-main text-accent-blue focus:ring-accent-blue focus:ring-offset-bg-bg-card"
               />
             </div>
 
@@ -333,7 +336,7 @@ export function TaskForm({ isOpen, onClose, onSave, initialTask }: TaskFormProps
                 type="checkbox" 
                 checked={temDeadline}
                 onChange={(e) => setTemDeadline(e.target.checked)}
-                className="w-4 h-4 rounded border-border-subtle bg-bg-main text-accent-blue focus:ring-accent-blue focus:ring-offset-bg-card"
+                className="w-4 h-4 rounded border-border-subtle bg-bg-main text-accent-blue focus:ring-accent-blue focus:ring-offset-bg-bg-card"
               />
             </div>
 

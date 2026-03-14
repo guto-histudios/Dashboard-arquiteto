@@ -55,7 +55,7 @@ export function ImprevistoModal({ isOpen, onClose, onConfirm }: ImprevistoModalP
               checked={adiarTodas} 
               onChange={(e) => setAdiarTodas(e.target.checked)} 
               id="adiarTodas"
-              className="w-4 h-4 text-error bg-bg-main border-border-subtle rounded focus:ring-error focus:ring-offset-bg-card"
+              className="w-4 h-4 text-error bg-bg-main border-border-subtle rounded focus:ring-error focus:ring-offset-bg-bg-card"
             />
             <label htmlFor="adiarTodas" className="text-sm text-text-main cursor-pointer">Adiar todas as tarefas restantes para amanhã</label>
           </div>

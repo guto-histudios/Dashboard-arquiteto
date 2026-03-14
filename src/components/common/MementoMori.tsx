@@ -60,7 +60,7 @@ export function MementoMori() {
   return (
     <div className="glass-card p-6 relative overflow-hidden group">
       {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-bg-sec/50 to-bg-main/50 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-bg-bg-sec/50 to-bg-bg-main/50 z-0"></div>
       
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">

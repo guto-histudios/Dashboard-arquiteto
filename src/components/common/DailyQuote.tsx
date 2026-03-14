@@ -83,7 +83,7 @@ export function DailyQuote() {
   const currentQuote = QUOTES[quoteIndex];
 
   return (
-    <div className="glass-card p-6 relative overflow-hidden group flex flex-col justify-between h-full bg-gradient-to-br from-bg-card to-bg-sec border-t-2 border-t-accent-blue/50">
+    <div className="glass-card p-6 relative overflow-hidden group flex flex-col justify-between h-full bg-gradient-to-br from-bg-bg-card to-bg-bg-sec border-t-2 border-t-accent-blue/50">
       {/* Background Icon */}
       <div className="absolute -top-4 -right-4 opacity-5 text-accent-blue pointer-events-none transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12">
         <Quote size={120} />

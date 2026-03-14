@@ -4,6 +4,8 @@ import { HabitoCard } from '../components/habitos/HabitoCard';
 import { HabitoForm } from '../components/habitos/HabitoForm';
 import { AIHabitGenerator } from '../components/habitos/AIHabitGenerator';
 import { Plus, Calendar, Sparkles } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 
 export function Habitos() {
   const { habitos, adicionarHabito, toggleConclusaoHabito } = useApp();
@@ -15,25 +17,27 @@ export function Habitos() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-success/10 rounded-xl">
-            <Calendar size={28} className="text-success" />
+            <Calendar size={28} className="text-success" strokeWidth={1.5} />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">Meus Hábitos</h1>
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-text-main">Meus Hábitos</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button 
+          <Button 
             onClick={() => setIsAIGeneratorOpen(true)}
-            className="bg-gradient-to-r from-accent-purple to-indigo-600 text-white font-medium px-6 py-2.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent-purple/25 active:scale-95 flex items-center gap-2"
+            variant="secondary"
+            className="flex items-center gap-2"
           >
-            <Sparkles size={20} />
+            <Sparkles size={20} strokeWidth={1.5} />
             Gerar com IA
-          </button>
-          <button 
+          </Button>
+          <Button 
             onClick={() => setIsFormOpen(true)}
-            className="bg-gradient-to-r from-success to-emerald-600 text-white font-medium px-6 py-2.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success/25 active:scale-95 flex items-center gap-2"
+            variant="primary"
+            className="flex items-center gap-2"
           >
-            <Plus size={20} />
+            <Plus size={20} strokeWidth={1.5} />
             Novo Hábito
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -43,13 +47,13 @@ export function Habitos() {
             <HabitoCard key={habito.id} habito={habito} onToggle={toggleConclusaoHabito} />
           ))
         ) : (
-          <div className="col-span-full glass-card flex flex-col items-center justify-center py-16 text-center">
+          <Card className="col-span-full flex flex-col items-center justify-center py-16 text-center">
             <div className="w-20 h-20 bg-bg-sec rounded-full flex items-center justify-center mb-6 border border-border-subtle">
-              <Calendar size={40} className="text-text-sec" />
+              <Calendar size={40} className="text-text-sec" strokeWidth={1.5} />
             </div>
-            <h3 className="text-xl font-medium mb-2">Nenhum hábito rastreado</h3>
+            <h3 className="text-xl font-serif font-medium mb-2 text-text-main">Nenhum hábito rastreado</h3>
             <p className="text-text-sec max-w-md">Comece a construir sua rotina adicionando seu primeiro hábito diário.</p>
-          </div>
+          </Card>
         )}
       </div>
 

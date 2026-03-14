@@ -10,6 +10,8 @@ import { Meta, Task, KPI } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { getDataStringBrasil } from '../utils/dataUtils';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 
 export function Metas() {
   const { metas, adicionarMeta, atualizarMeta, removerMeta, userProfile, tasks, kpis, adicionarTask, adicionarKPI } = useApp();
@@ -221,57 +223,60 @@ export function Metas() {
         <div className="flex items-center gap-3">
           <div className="p-3 bg-accent-blue/10 rounded-xl">
             {showArchived ? (
-              <History size={28} className="text-accent-blue" />
+              <History size={28} className="text-accent-blue" strokeWidth={1.5} />
             ) : (
-              <Target size={28} className="text-accent-blue" />
+              <Target size={28} className="text-accent-blue" strokeWidth={1.5} />
             )}
           </div>
-          <h1 className="text-4xl font-bold tracking-tight">
+          <h1 className="text-4xl font-serif font-bold tracking-tight text-text-main">
             {showArchived ? 'Histórico de Metas' : 'Minhas Metas'}
           </h1>
         </div>
         <div className="flex gap-3">
-          <button 
+          <Button 
             onClick={() => setShowArchived(!showArchived)}
-            className="btn-secondary flex items-center gap-2"
+            variant="secondary"
+            className="flex items-center gap-2"
           >
             {showArchived ? (
               <>
-                <Target size={20} className="text-accent-blue" />
+                <Target size={20} className="text-accent-blue" strokeWidth={1.5} />
                 Ver Ativas
               </>
             ) : (
               <>
-                <Archive size={20} className="text-accent-blue" />
+                <Archive size={20} className="text-accent-blue" strokeWidth={1.5} />
                 Ver Arquivadas
               </>
             )}
-          </button>
+          </Button>
           
           {!showArchived && (
             <>
-              <button 
+              <Button 
                 onClick={handleGenerateAI}
                 disabled={isGenerating || isLocked}
-                className={`btn-secondary flex items-center gap-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                variant="secondary"
+                className={`flex items-center gap-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title={isLocked ? "Crie pelo menos 1 Task e 1 KPI primeiro" : ""}
               >
                 {isGenerating ? (
-                  <div className="w-5 h-5 border-2 border-text-sec border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-text-muted border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <Sparkles size={20} className="text-accent-purple" />
+                  <Sparkles size={20} className="text-accent-purple" strokeWidth={1.5} />
                 )}
                 Gerar com IA
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => setIsFormOpen(true)}
                 disabled={isLocked}
-                className={`btn-primary flex items-center gap-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                variant="primary"
+                className={`flex items-center gap-2 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title={isLocked ? "Crie pelo menos 1 Task e 1 KPI primeiro" : ""}
               >
-                <Plus size={20} />
+                <Plus size={20} strokeWidth={1.5} />
                 Nova Meta
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -283,13 +288,13 @@ export function Metas() {
       {showArchived ? (
         <div className="space-y-8">
           {archivedMetas.length === 0 ? (
-            <div className="glass-card flex flex-col items-center justify-center py-16 text-center">
+            <Card className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-20 h-20 bg-bg-sec rounded-full flex items-center justify-center mb-6 border border-border-subtle">
-                <Archive size={40} className="text-text-sec" />
+                <Archive size={40} className="text-text-sec" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-medium mb-2">Nenhuma meta arquivada</h3>
+              <h3 className="text-xl font-serif font-medium mb-2 text-text-main">Nenhuma meta arquivada</h3>
               <p className="text-text-sec max-w-md">As metas concluídas ou expiradas aparecerão aqui.</p>
-            </div>
+            </Card>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Concluídas com Sucesso */}
